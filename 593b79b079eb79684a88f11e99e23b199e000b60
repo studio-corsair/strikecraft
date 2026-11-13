@@ -1,0 +1,75 @@
+{
+  "schema": "trunk-push/1",
+  "verdict": "APPROVE",
+  "head": "593b79b079eb79684a88f11e99e23b199e000b60",
+  "tree": "5caa0619c449bb84fa350748afcb227863fc9881",
+  "base": "e3a1fd28a4d5f60ecaf2cd9dff72c5ee9cb65132",
+  "gate": {
+    "cmd": "npm run -s check:fast",
+    "skipped": false,
+    "exit": 0,
+    "outputSha256": "07fda3d979e9c8509f57b3ceea9e3d6dfce8dc87498f2beec3c30aa256ce6aaa"
+  },
+  "review": {
+    "by": "harness gate review (claude -p, fresh context)",
+    "findings": [
+      "· [advisory low] apps/server/src/main.ts:98 The 'may still have reached the broker: check your working and filled orders' text is chosen by HTTP method alone, so any POST or DELETE that times out gets it, including ones that place no order (such as a tastytrade session login or a Tradier order preview). The user is then sent to look for orders that were never sent. (F9912dcb897)",
+      "· [pre-existing low] apps/web/src/format.ts:37 signedPct still shows a small negative that rounds to zero as \"−0.00%\" (sign is taken from the raw value, not the rounded text). That is the same −0 problem this change fixes in usd, usdCompact and num, but it was missed here. → SC-9896",
+      "· round 1 (full): 3 new candidate(s), 1 dropped by the verifier"
+    ],
+    "report": {
+      "promptHash": "6c9bc873141b",
+      "round": 1,
+      "mode": "full",
+      "reviewMd": null,
+      "findings": [
+        {
+          "id": "F73ac2de623",
+          "round": 1,
+          "tier": "pre-existing",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "apps/web/src/format.ts",
+          "line": 37,
+          "summary": "signedPct still shows a small negative that rounds to zero as \"−0.00%\" (sign is taken from the raw value, not the rounded text). That is the same −0 problem this change fixes in usd, usdCompact and num, but it was missed here.",
+          "class": "negative-zero-after-rounding",
+          "verified": true,
+          "outcome": null,
+          "card": "SC-9896"
+        },
+        {
+          "id": "F9912dcb897",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "apps/server/src/main.ts",
+          "line": 98,
+          "summary": "The 'may still have reached the broker: check your working and filled orders' text is chosen by HTTP method alone, so any POST or DELETE that times out gets it, including ones that place no order (such as a tastytrade session login or a Tradier order preview). The user is then sent to look for orders that were never sent.",
+          "class": "wrong-condition",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F9168ab4863",
+          "round": 1,
+          "tier": "dropped",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "apps/server/test/server.test.ts",
+          "line": 249,
+          "summary": "The GET half of the new method check is never tested. The only GET assertion uses toThrow with a substring, so if a change made reads also carry the 'may still have reached the broker… check your working and filled orders' warning (for example, by dropping the `=== 'GET'` condition), it would still pass.",
+          "class": "substring-assert-misses-negative-branch",
+          "verified": false,
+          "outcome": null
+        }
+      ]
+    }
+  },
+  "risk": {
+    "class": "normal",
+    "paths": []
+  },
+  "approval": null,
+  "at": "2026-11-13T15:07:13.633Z"
+}
