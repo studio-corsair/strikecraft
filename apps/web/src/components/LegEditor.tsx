@@ -26,10 +26,18 @@ interface Props {
 export const MAX_LEGS = 4;
 
 export function LegEditor({ legs, marks, onChange, expirations, strikes, defaultExpiry, spot }: Props) {
-  const [open, setOpen] = useState<number | null>(null);
+  // Each leg opens and closes on its own: opening one never collapses another (which would move
+  // the rows below it).
+  const [open, setOpen] = useState<Set<number>>(new Set());
+  const toggle = (i: number) =>
+    setOpen((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(i)) next.add(i);
+      return next;
+    });
   const set = (i: number, patch: Partial<LegInput>) => onChange(legs.map((l, j) => (j === i ? { ...l, ...patch } : l)));
   const remove = (i: number) => {
-    setOpen(null);
+    setOpen(new Set());
     onChange(legs.filter((_, j) => j !== i));
   };
   const add = () => {
@@ -56,7 +64,7 @@ export function LegEditor({ legs, marks, onChange, expirations, strikes, default
             l.strike != null && !strikes.includes(l.strike) ? [...strikes, l.strike].sort((a, b) => a - b) : strikes;
           const expiryOptions =
             l.expiry && !expirations.includes(l.expiry) ? [...expirations, l.expiry].sort() : expirations;
-          const isOpen = open === i;
+          const isOpen = open.has(i);
           return (
             <li className="leg-row" key={i} data-testid="leg">
               <div className="leg-line">
@@ -74,7 +82,7 @@ export function LegEditor({ legs, marks, onChange, expirations, strikes, default
                     aria-expanded={isOpen}
                     aria-controls={`${id}-fields`}
                     aria-label={`Edit leg ${n}`}
-                    onClick={() => setOpen(isOpen ? null : i)}
+                    onClick={() => toggle(i)}
                   >
                     Edit
                   </button>

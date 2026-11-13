@@ -1,5 +1,5 @@
 {
-  "ui": ["src/**", "app/**", "components/**"],
-  "tests": ["e2e/**", "tests/**"],
-  "battery": "npx playwright test e2e/*.crud.spec.ts e2e/fuzz.spec.ts"
+  "ui": ["apps/web/src/**"],
+  "tests": ["e2e/**", "apps/web/test/**"],
+  "battery": "npx playwright test e2e/analyze.spec.ts e2e/trade.spec.ts e2e/earnings.spec.ts e2e/brokers.spec.ts"
 }

@@ -1,6 +1,6 @@
 // Trade: the option chain, a multi-leg ticket that previews with the broker before anything is
 // sent, and the account's working and filled orders.
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useApp, useLoad, usePoll } from '../state.tsx';
 import type { Account, Analysis, Chain, ChainCell, Expirations, LegInput, OrderRequest, Preview } from '../api.ts';
 import { Panel, Skeleton, ErrorNote, Segmented } from '../components/ui.tsx';
@@ -11,13 +11,12 @@ import type { Intent } from '../ticket.ts';
 import './trade.css';
 
 type Section = 'chain' | 'ticket' | 'orders';
-const WINDOW = 8; // strikes shown each side of the money before "more strikes"
 
 export function Trade() {
   const { api, feed, live, symbol, legs, setLegs, status, go } = useApp();
   const [section, setSection] = useState<Section>('chain');
   const [expiryPick, setExpiryPick] = useState<string | null>(null);
-  const [extra, setExtra] = useState(0);
+  const scroller = useRef<HTMLDivElement>(null);
 
   const exps = useLoad<Expirations>(`exp:${symbol}:${feed}`, () => api.expirations(symbol));
   const list = exps.data?.expirations ?? [];
@@ -37,20 +36,23 @@ export function Trade() {
     for (const ms of [1500, 4000, 9000]) setTimeout(account.reload, ms);
   }, [account.reload]);
 
-  useEffect(() => setExtra(0), [symbol, expiry]);
-
+  // Every strike is in the list; the list scrolls inside a fixed-height box that opens centred on
+  // the money, so loading more strikes never moves the page.
   const rows = useMemo(() => {
     const all = chain.data?.rows ?? [];
-    if (!all.length || !chain.data) return { shown: [], atm: -1, more: false };
+    if (!all.length || !chain.data) return { shown: [], atm: -1 };
     const atm = nearestIndex(
       all.map((r) => r.strike),
       chain.data.market.price,
     );
-    const span = WINDOW + extra;
-    const lo = Math.max(0, atm - span),
-      hi = Math.min(all.length, atm + span + 1);
-    return { shown: all.slice(lo, hi), atm: all[atm]!.strike, more: lo > 0 || hi < all.length };
-  }, [chain.data, extra]);
+    return { shown: all, atm: all[atm]!.strike };
+  }, [chain.data]);
+  const chainKey = chain.data ? `${chain.data.market.symbol}:${chain.data.expiry}` : null;
+  useLayoutEffect(() => {
+    const box = scroller.current;
+    const row = box?.querySelector<HTMLElement>('tr.atm');
+    if (box && row) box.scrollTop = row.offsetTop - box.clientHeight / 2 + row.offsetHeight / 2;
+  }, [chainKey]);
 
   const inTicket = (right: 'C' | 'P', strike: number) =>
     legs.find((l) => l.type === right && l.strike === strike && l.expiry === expiry) ?? null;
@@ -97,7 +99,7 @@ export function Trade() {
         <Skeleton height={560} />
       ) : (
         <>
-          <div className="table-wrap">
+          <div className="table-wrap chain-scroll" ref={scroller} tabIndex={0} role="group" aria-label="Strikes">
             <table
               className="data chain"
               data-nosort /* a chain is read by strike order; calls and puts mirror around it */
@@ -187,11 +189,6 @@ export function Trade() {
                 })}
               </tbody>
             </table>
-          </div>
-          <div className="row-actions">
-            <button type="button" className="btn" onClick={() => setExtra((x) => x + 8)} disabled={!rows.more}>
-              More strikes
-            </button>
           </div>
           <dl className="kv chain-summary">
             <dt>At-the-money straddle</dt>

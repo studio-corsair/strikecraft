@@ -64,8 +64,6 @@ test('connect the sandbox, place a 2-leg order through the UI, cancel it', async
   await page.goto(`${base}/trade`);
   await expect(page.getByTestId('quote-source')).toContainText('Tradier sandbox');
   // Far out-of-the-money call vertical for one cent: it cannot fill, so it rests until canceled.
-  await page.getByRole('button', { name: 'More strikes' }).click();
-  await page.getByRole('button', { name: 'More strikes' }).click();
   const asks = page.getByRole('button', { name: /^Buy \d+(\.\d+)? call at the ask/ });
   const bids = page.getByRole('button', { name: /^Sell \d+(\.\d+)? call at the bid/ });
   const n = await asks.count();

@@ -167,6 +167,8 @@ export function AppProvider({ children }: { children: (ready: boolean, bootError
     () => (api ? { api, feed, live, status, symbol, setSymbol, quote, legs, setLegs, tab, go } : null),
     [api, feed, live, status, symbol, setSymbol, quote, legs, setLegs, tab, go],
   );
-  if (!value) return <>{children(false, bootError)}</>;
+  // The screens are drawn once the first status answer is in (which sources, which broker, demo
+  // or not): every screen's layout depends on it, and drawing before it means drawing twice.
+  if (!value || (!status.data && !status.error)) return <>{children(false, bootError)}</>;
   return <Ctx.Provider value={value}>{children(true, null)}</Ctx.Provider>;
 }
