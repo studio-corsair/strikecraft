@@ -7,6 +7,8 @@ npx strikecraft          # opens http://localhost:4173
 npx strikecraft --demo   # try it on built-in simulated data: no account, no network
 ```
 
+**[Try the demo in your browser](https://strikecraft.pages.dev)**: simulated data, nothing to install, and it installs to a phone's home screen.
+
 ![Analyze screen: position, risk profile by date, greeks, scenario grid, probabilities and the earnings effect](docs/img/analyze-desktop.png)
 
 ## What it does

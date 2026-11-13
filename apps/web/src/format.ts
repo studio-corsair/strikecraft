@@ -33,8 +33,12 @@ export const pct = (x: number | null | undefined, digits = 1): string =>
   finite(x) ? `${(x * 100).toFixed(digits)}%` : DASH;
 
 /** Already-in-percent with sign: 2.83 → "+2.83%". */
-export const signedPct = (x: number | null | undefined, digits = 2): string =>
-  finite(x) ? `${x > 0 ? '+' : x < 0 ? '−' : ''}${Math.abs(x).toFixed(digits)}%` : DASH;
+export function signedPct(x: number | null | undefined, digits = 2): string {
+  if (!finite(x)) return DASH;
+  const s = Math.abs(x).toFixed(digits);
+  // The sign follows the rounded text: −0.004 is "0.00%", not "−0.00%".
+  return `${Number(s) === 0 ? '' : x > 0 ? '+' : '−'}${s}%`;
+}
 
 /** 3668.01 → "3,668"; small numbers keep decimals. */
 export function num(x: number | null | undefined, digits = 0): string {

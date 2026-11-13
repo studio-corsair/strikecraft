@@ -39,6 +39,8 @@ describe('formatting', () => {
     expect(signedPct(2.828)).toBe('+2.83%');
     expect(signedPct(-5, 0)).toBe('−5%');
     expect(signedPct(0, 0)).toBe('0%');
+    expect(signedPct(-0.004)).toBe('0.00%');
+    expect(signedPct(0.004)).toBe('0.00%');
     expect(num(3668.01)).toBe('3,668');
     expect(num(-29.47, 1)).toBe('−29.5');
     expect(num(-0.4)).toBe('0'); // a small negative that rounds to zero is not "−0"

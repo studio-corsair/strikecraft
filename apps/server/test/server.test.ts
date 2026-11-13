@@ -256,6 +256,17 @@ describe('a broker that stops answering', () => {
     ).rejects.toThrow(
       'may still have reached the broker: check your working and filled orders before sending it again',
     );
+    // A login or a preview places nothing: no order warning for those.
+    for (const [path, body] of [
+      ['/oauth/token', 'grant_type=refresh_token'],
+      ['/accounts/X/orders/dry-run', '{}'],
+      ['/v1/accounts/X/orders', 'class=multileg&preview=true'],
+    ] as const) {
+      const err = await fetchWithDeadline(`http://127.0.0.1:${port}${path}`, { method: 'POST', body }).catch(
+        (e: Error) => e,
+      );
+      expect((err as Error).message).toBe(`127.0.0.1:${port} did not answer within 0 s`);
+    }
     silent.closeAllConnections();
   });
 });

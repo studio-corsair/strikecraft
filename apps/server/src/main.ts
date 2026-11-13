@@ -78,6 +78,14 @@ export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env):
  * Global fetch as the minimal shape broker adapters take, with a deadline: a broker that stops
  * answering fails the request with a clear error instead of hanging every screen that uses it.
  */
+/** True when a request that got no answer could still have placed, changed or canceled an order. */
+function mayHaveActed(url: string, init?: { method?: string; body?: string }): boolean {
+  if ((init?.method ?? 'GET') === 'GET') return false;
+  const path = new URL(url).pathname;
+  if (!/\/orders(\/|$)/.test(path) || path.endsWith('/dry-run')) return false; // logins, previews
+  return !/(^|[?&])preview=true(&|$)/.test(init?.body ?? '');
+}
+
 export const makeNodeFetch =
   (timeoutMs = 15_000): FetchLike =>
   async (url, init) => {
@@ -95,7 +103,7 @@ export const makeNodeFetch =
         throw new Error(
           `${new URL(url).host} did not answer within ${Math.round(timeoutMs / 1000)} s` +
             // A write may have arrived even though no answer came back: never invite a blind resend.
-            ((init?.method ?? 'GET') === 'GET'
+            (!mayHaveActed(url, init)
               ? ''
               : '. The request may still have reached the broker: check your working and filled orders before sending it again'),
           { cause: e },
