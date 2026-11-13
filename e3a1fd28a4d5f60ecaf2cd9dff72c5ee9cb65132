@@ -257,6 +257,10 @@
       ".github/workflows/ci.yml"
     ]
   },
-  "approval": null,
+  "approval": {
+    "by": "jordan",
+    "via": "trust-gate permission prompt on `trunk-push push --approved`",
+    "at": "2026-11-13T14:58:33.042Z"
+  },
   "at": "2026-11-13T14:20:07.439Z"
 }
