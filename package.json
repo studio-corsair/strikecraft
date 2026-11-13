@@ -10,7 +10,7 @@
     "apps/*"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22.18"
   },
   "scripts": {
     "test": "vitest run",
@@ -21,7 +21,7 @@
     "build:demo": "STRIKECRAFT_DEMO=1 npm run -s build -w @strikecraft/web -- --outDir dist-demo",
     "dev": "node apps/server/src/bin.ts --no-open",
     "serve": "npm run -s build && node apps/server/src/bin.ts --demo --no-open --static apps/web/dist",
-    "start": "node apps/server/src/bin.ts",
+    "start": "npm run -s build && node apps/server/src/bin.ts",
     "build:package": "node scripts/build-package.mjs"
   },
   "devDependencies": {

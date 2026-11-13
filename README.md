@@ -3,9 +3,12 @@
 A free, open-source options workstation. It analyzes and trades through **your own broker API key**, runs on **your own machine**, and works on a phone.
 
 ```bash
-npx strikecraft          # opens http://localhost:4173
-npx strikecraft --demo   # try it on built-in simulated data: no account, no network
+git clone https://github.com/studio-corsair/strikecraft && cd strikecraft && npm install
+npm start             # builds the UI, then opens http://localhost:4173
+npm start -- --demo   # try it on built-in simulated data: no account, no network
 ```
+
+Needs Node 22.18 or newer.
 
 **[Try the demo in your browser](https://strikecraft.pages.dev)**: simulated data, nothing to install, and it installs to a phone's home screen.
 
@@ -28,7 +31,7 @@ npx strikecraft --demo   # try it on built-in simulated data: no account, no net
 
 ## How your data and keys are handled
 
-- **Nothing goes through a server of ours.** There isn't one. `npx strikecraft` starts a small server on your machine; it talks to your broker and to public data sources directly.
+- **Nothing goes through a server of ours.** There isn't one. `npm start` runs a small server on your machine; it talks to your broker and to public data sources directly.
 - **Your key stays on your machine**, in `~/.strikecraft/config.json`, readable only by you (mode 0600). It is sent to exactly one place: the broker it belongs to. A test asserts this on every route ([`apps/server/test/server.test.ts`](apps/server/test/server.test.ts)).
 - **Live orders are off by default.** Until you switch on "Allow live orders", no order can reach a live account: the adapter refuses before any request is made. Sandbox and paper orders always work. Every order is previewed with the broker first, and what is sent is exactly what was previewed.
 - **Every price names its source.** The top bar says whether a quote is real-time from your broker or delayed from a public feed. A delayed number never passes for a live one.
@@ -58,7 +61,7 @@ Earnings dates come from SEC EDGAR filings.
 The UI is a phone layout in its own right (tabs for chain, ticket and orders; the scenario grid turns on its side). To use the copy running on your computer from your phone:
 
 ```bash
-npx strikecraft --host 0.0.0.0
+npm start -- --host 0.0.0.0
 ```
 
 Open the printed address on the phone. Anyone who can reach that address can use your connected broker, so only do this on a network you trust.
