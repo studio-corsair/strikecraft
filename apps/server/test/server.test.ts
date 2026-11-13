@@ -24,7 +24,9 @@ const tmp = () => {
   return d;
 };
 
-async function start(o: { fetch?: FetchLike; store?: StateStore; mode?: 'local' | 'demo'; staticDir?: string } = {}) {
+async function start(
+  o: { fetch?: FetchLike; store?: StateStore; mode?: 'local' | 'demo'; staticDir?: string; allowHosts?: string[] } = {},
+) {
   const service = await createService({
     mode: o.mode ?? 'demo',
     baseSources: [demo],
@@ -40,7 +42,7 @@ async function start(o: { fetch?: FetchLike; store?: StateStore; mode?: 'local' 
     demo: { simulated: true, symbols: demo.symbols, asOf: demo.asOf },
     version: 'test',
   });
-  const server = createServer({ service, port: 0, staticDir: o.staticDir });
+  const server = createServer({ service, port: 0, staticDir: o.staticDir, allowHosts: o.allowHosts });
   servers.push(server);
   const port = await listen(server, 0);
   const base = `http://127.0.0.1:${port}`;
@@ -155,6 +157,30 @@ describe('same-origin guards', () => {
       headers: { 'Content-Type': 'application/json', 'X-Strikebench': '1' },
     });
     expect(bad.status).toBe(400);
+  });
+});
+
+describe('reaching it under another name (a tailnet HTTPS address)', () => {
+  // Speak HTTP directly: fetch() cannot set the Host header.
+  const raw = async (port: number, headers: Record<string, string>) => {
+    const { default: h } = await import('node:http');
+    return new Promise<number>((resolve, reject) => {
+      const req = h.request({ host: '127.0.0.1', port, path: '/api/status', headers }, (r) => {
+        r.resume();
+        r.on('end', () => resolve(r.statusCode ?? 0));
+      });
+      req.on('error', reject);
+      req.end();
+    });
+  };
+  it('accepts a host name passed with --allow-host, and only that one', async () => {
+    const { port } = await start({ allowHosts: ['laptop.tail1234.ts.net'] });
+    // What `tailscale serve` forwards: the tailnet name as Host, and the page's own origin.
+    expect(await raw(port, { Host: 'laptop.tail1234.ts.net' })).toBe(200);
+    expect(await raw(port, { Host: 'laptop.tail1234.ts.net', Origin: 'https://laptop.tail1234.ts.net' })).toBe(200);
+    expect(await raw(port, { Host: 'LAPTOP.tail1234.ts.net:443' })).toBe(200);
+    expect(await raw(port, { Host: 'other.tail1234.ts.net' })).toBe(403);
+    expect(await raw(port, { Host: 'laptop.tail1234.ts.net', Origin: 'https://evil.example' })).toBe(403);
   });
 });
 

@@ -66,3 +66,36 @@ test('editing the ticket after a preview withdraws the Send button', async ({ pa
   await page.getByRole('button', { name: /^Remove .* from the ticket/ }).click();
   await expect(page.getByTestId('ticket-leg')).toHaveCount(0);
 });
+
+test('the chain pages through strikes without changing size, and stops at the ends of the list', async ({ page }) => {
+  await page.goto('/trade');
+  const table = page.getByRole('table');
+  const strikes = async () =>
+    (await table.locator('tbody tr th.strike').allInnerTexts()).map(Number).filter((n) => Number.isFinite(n));
+  const rowCount = () => table.locator('tbody tr').count();
+  const lower = page.getByRole('button', { name: 'Lower strikes' });
+  const higher = page.getByRole('button', { name: 'Higher strikes' });
+
+  await expect(page.getByRole('button', { name: /^Buy 170 call at the ask/ })).toBeVisible(); // opens around the money
+  const first = await strikes();
+  const size = await rowCount();
+  expect(size).toBe(13);
+
+  await higher.click();
+  const up = await strikes();
+  expect(Math.min(...up)).toBeGreaterThan(Math.max(...first)); // a whole new page: no strike repeats
+  expect(await rowCount()).toBe(size);
+
+  await lower.click();
+  expect(await strikes()).toEqual(first);
+  await lower.click();
+  const down = await strikes();
+  expect(Math.max(...down)).toBeLessThan(Math.min(...first));
+  expect(await rowCount()).toBe(size); // slots with no listed strike stay as empty rows
+
+  // Keep going down until the list ends: the button disables instead of showing an empty page.
+  for (let i = 0; i < 20 && (await lower.isEnabled()); i++) await lower.click();
+  await expect(lower).toBeDisabled();
+  expect((await strikes()).length).toBeGreaterThan(0);
+  await expect(higher).toBeEnabled();
+});

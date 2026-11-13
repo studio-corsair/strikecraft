@@ -1,0 +1,35 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Types
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npx eslint . --max-warnings=0
+      - name: Unit and contract tests (no network)
+        run: npx vitest run
+      - name: Build
+        run: npm run build
+      - name: Browser
+        run: npx playwright install --with-deps chromium
+      - name: End-to-end tests on simulated data
+        run: npx playwright test e2e/analyze.spec.ts e2e/trade.spec.ts e2e/earnings.spec.ts e2e/brokers.spec.ts
+      - name: Package builds and installs from a clean directory
+        run: node scripts/fresh-install-test.mjs

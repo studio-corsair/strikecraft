@@ -404,7 +404,6 @@ function LadderPanel({ ladder }: { ladder: Rung[] }) {
           </li>
         ))}
       </ol>
-      <p className="note">The first source that answers wins. Every price on screen names its source.</p>
     </Panel>
   );
 }
@@ -412,6 +411,7 @@ function LadderPanel({ ladder }: { ladder: Rung[] }) {
 function SafetyPanel({ status }: { status: Status }) {
   const { api, status: st } = useApp();
   const on = status.settings.allowLiveOrders;
+  const demo = status.mode === 'demo';
   const [confirming, setConfirming] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -437,7 +437,7 @@ function SafetyPanel({ status }: { status: Status }) {
         role="switch"
         aria-checked={on}
         className="switch"
-        disabled={pending}
+        disabled={pending || demo}
         onClick={() => (on ? void set(false) : setConfirming(true))}
         data-uisweep-destructive
       >
@@ -447,7 +447,9 @@ function SafetyPanel({ status }: { status: Status }) {
         <span>Allow live orders</span>
       </button>
       <p className="note">
-        While this is off, no order can reach a live account. Sandbox and paper orders always work.
+        {demo
+          ? 'Live trading is not available in the demo. Paper orders always work.'
+          : 'While this is off, no order can reach a live account. Sandbox and paper orders always work.'}
       </p>
       {confirming && !on && (
         <div className="confirm" role="group" aria-label="Confirm live orders">
@@ -511,6 +513,9 @@ function AboutPanel({ status }: { status: Status }) {
 export function Connections() {
   const { status } = useApp();
   const s = status.data;
+  // Source states change as prices are fetched elsewhere in the app: read them fresh on arrival.
+  const reload = status.reload;
+  useEffect(() => reload(), [reload]);
   if (!s) {
     return status.error ? (
       <Panel title="Connections">

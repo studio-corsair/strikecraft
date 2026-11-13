@@ -431,6 +431,12 @@ table.data tbody tr:hover td {
   .tab {
     padding: 0 2px;
   }
+  /* The price and the source each own a full row: the header has one height before and after
+     the quote arrives. */
+  .topbar .quote,
+  .topbar .sources {
+    flex: 1 0 100%;
+  }
   .main {
     padding: 10px;
   }

@@ -61,9 +61,22 @@ test('connect the sandbox, place a 2-leg order through the UI, cancel it', async
   await expect(page.getByText(/Connected · sandbox/).first()).toBeVisible({ timeout: 30000 });
   await expect(page.locator('body')).not.toContainText(TOKEN);
 
+  // Live orders: off, and one click is not enough to turn them on.
+  const safety = page.getByRole('region', { name: 'Order safety' });
+  const toggle = safety.getByRole('switch', { name: 'Allow live orders' });
+  await expect(toggle).toHaveAttribute('aria-checked', 'false');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-checked', 'false');
+  const confirm = safety.getByRole('group', { name: 'Confirm live orders' });
+  await expect(confirm).toContainText('real money');
+  await confirm.getByRole('button', { name: 'Keep off' }).click();
+  await expect(confirm).toHaveCount(0);
+  await expect(toggle).toHaveAttribute('aria-checked', 'false');
+
   await page.goto(`${base}/trade`);
   await expect(page.getByTestId('quote-source')).toContainText('Tradier sandbox');
   // Far out-of-the-money call vertical for one cent: it cannot fill, so it rests until canceled.
+  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Higher strikes' }).click();
   const asks = page.getByRole('button', { name: /^Buy \d+(\.\d+)? call at the ask/ });
   const bids = page.getByRole('button', { name: /^Sell \d+(\.\d+)? call at the bid/ });
   const n = await asks.count();

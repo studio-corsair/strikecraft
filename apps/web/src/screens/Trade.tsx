@@ -1,8 +1,18 @@
 // Trade: the option chain, a multi-leg ticket that previews with the broker before anything is
 // sent, and the account's working and filled orders.
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useApp, useLoad, usePoll } from '../state.tsx';
-import type { Account, Analysis, Chain, ChainCell, Expirations, LegInput, OrderRequest, Preview } from '../api.ts';
+import type {
+  Account,
+  Analysis,
+  Chain,
+  ChainCell,
+  ChainRow,
+  Expirations,
+  LegInput,
+  OrderRequest,
+  Preview,
+} from '../api.ts';
 import { Panel, Skeleton, ErrorNote, Segmented } from '../components/ui.tsx';
 import { expiryLabel, legLabel, num, pct, pnlClass, price, usd, usdCompact } from '../format.ts';
 import { addLeg, legKey, nearestIndex } from '../strategies.ts';
@@ -11,12 +21,15 @@ import type { Intent } from '../ticket.ts';
 import './trade.css';
 
 type Section = 'chain' | 'ticket' | 'orders';
+const WINDOW = 6; // strikes shown each side of the centre of the window
+// A page is a whole window: no strike appears on two pages, so a contract never changes place.
+const PAGE = 2 * WINDOW + 1;
 
 export function Trade() {
   const { api, feed, live, symbol, legs, setLegs, status, go } = useApp();
   const [section, setSection] = useState<Section>('chain');
   const [expiryPick, setExpiryPick] = useState<string | null>(null);
-  const scroller = useRef<HTMLDivElement>(null);
+  const [offset, setOffset] = useState(0);
 
   const exps = useLoad<Expirations>(`exp:${symbol}:${feed}`, () => api.expirations(symbol));
   const list = exps.data?.expirations ?? [];
@@ -36,23 +49,26 @@ export function Trade() {
     for (const ms of [1500, 4000, 9000]) setTimeout(account.reload, ms);
   }, [account.reload]);
 
-  // Every strike is in the list; the list scrolls inside a fixed-height box that opens centred on
-  // the money, so loading more strikes never moves the page.
+  // A fixed number of row slots. The window opens centred on the money and is paged up or down
+  // the strike list; a slot with no listed strike stays as an empty row. The table therefore has
+  // one size for every expiry and every page, and nothing around it ever moves.
   const rows = useMemo(() => {
     const all = chain.data?.rows ?? [];
-    if (!all.length || !chain.data) return { shown: [], atm: -1 };
+    if (!all.length || !chain.data) return { slots: [] as (ChainRow | null)[], atm: -1, lower: false, higher: false };
     const atm = nearestIndex(
       all.map((r) => r.strike),
       chain.data.market.price,
     );
-    return { shown: all, atm: all[atm]!.strike };
-  }, [chain.data]);
-  const chainKey = chain.data ? `${chain.data.market.symbol}:${chain.data.expiry}` : null;
-  useLayoutEffect(() => {
-    const box = scroller.current;
-    const row = box?.querySelector<HTMLElement>('tr.atm');
-    if (box && row) box.scrollTop = row.offsetTop - box.clientHeight / 2 + row.offsetHeight / 2;
-  }, [chainKey]);
+    const centre = atm + offset;
+    const slots = Array.from({ length: 2 * WINDOW + 1 }, (_, i) => all[centre - WINDOW + i] ?? null);
+    return {
+      slots,
+      atm: all[atm]!.strike,
+      lower: centre - WINDOW > 0,
+      higher: centre + WINDOW < all.length - 1,
+    };
+  }, [chain.data, offset]);
+  useEffect(() => setOffset(0), [symbol, expiry]);
 
   const inTicket = (right: 'C' | 'P', strike: number) =>
     legs.find((l) => l.type === right && l.strike === strike && l.expiry === expiry) ?? null;
@@ -99,7 +115,15 @@ export function Trade() {
         <Skeleton height={560} />
       ) : (
         <>
-          <div className="table-wrap chain-scroll" ref={scroller} tabIndex={0} role="group" aria-label="Strikes">
+          <div className="row-actions strike-pager">
+            <button type="button" className="btn" onClick={() => setOffset((x) => x - PAGE)} disabled={!rows.lower}>
+              Lower strikes
+            </button>
+            <button type="button" className="btn" onClick={() => setOffset((x) => x + PAGE)} disabled={!rows.higher}>
+              Higher strikes
+            </button>
+          </div>
+          <div className="table-wrap">
             <table
               className="data chain"
               data-nosort /* a chain is read by strike order; calls and puts mirror around it */
@@ -142,7 +166,13 @@ export function Trade() {
                 </tr>
               </thead>
               <tbody>
-                {rows.shown.map((r) => {
+                {rows.slots.map((r, slot) => {
+                  if (!r)
+                    return (
+                      <tr key={`blank-${slot}`} className="blank" aria-hidden="true">
+                        <td colSpan={11} />
+                      </tr>
+                    );
                   const c = inTicket('C', r.strike),
                     p = inTicket('P', r.strike);
                   return (

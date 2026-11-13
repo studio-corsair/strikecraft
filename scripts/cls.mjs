@@ -30,8 +30,20 @@ if (Number(delay) > 0)
     await new Promise((r) => setTimeout(r, Number(delay)));
     await route.continue();
   });
+if (process.env.THROTTLE) {
+  // A slow phone: 4x CPU slowdown and slow-4G network, as the page-speed check simulates.
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await cdp.send('Network.enable');
+  await cdp.send('Network.emulateNetworkConditions', {
+    offline: false,
+    latency: 150,
+    downloadThroughput: (1.6 * 1024 * 1024) / 8,
+    uploadThroughput: (750 * 1024) / 8,
+  });
+}
 await page.goto(url);
-await page.waitForTimeout(3500 + 6 * Number(delay));
+await page.waitForTimeout((process.env.THROTTLE ? 9000 : 3500) + 6 * Number(delay));
 const shifts = await page.evaluate(() => window.__shifts);
 let total = 0;
 for (const s of shifts) {

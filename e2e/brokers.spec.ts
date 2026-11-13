@@ -18,7 +18,7 @@ test('lists every broker, the data ladder and where keys are kept', async ({ pag
   await expect(brokers).toContainText('The demo runs on simulated data');
   const ladder = page.getByRole('region', { name: 'Market data' });
   await expect(ladder).toContainText('Simulated demo data');
-  await expect(ladder).toContainText('The first source that answers wins');
+  await expect(ladder).toContainText('delayed'); // the demo rung is never shown as live
   const about = page.getByRole('region', { name: 'About this install' });
   await expect(about).toContainText('Demo');
   await expect(about).toContainText('Paper account');
@@ -42,19 +42,11 @@ test('the broker table sorts by any column', async ({ page }) => {
   }
 });
 
-test('live orders are off, and turning them on takes a second step that the demo refuses', async ({ page }) => {
+test('live orders are off and cannot be switched on in the demo', async ({ page }) => {
   await page.goto('/connections');
   const safety = page.getByRole('region', { name: 'Order safety' });
   const toggle = safety.getByRole('switch', { name: 'Allow live orders' });
   await expect(toggle).toHaveAttribute('aria-checked', 'false');
-  await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-checked', 'false'); // one click is not enough
-  const confirm = safety.getByRole('group', { name: 'Confirm live orders' });
-  await expect(confirm).toContainText('real money');
-  await confirm.getByRole('button', { name: 'Keep off' }).click();
-  await expect(confirm).toHaveCount(0);
-  await toggle.click();
-  await safety.getByRole('button', { name: 'Turn on live orders' }).click();
-  await expect(safety.getByRole('alert')).toContainText('not available in the demo');
-  await expect(toggle).toHaveAttribute('aria-checked', 'false'); // the switch shows what the server says
+  await expect(toggle).toBeDisabled();
+  await expect(safety).toContainText('Live trading is not available in the demo');
 });

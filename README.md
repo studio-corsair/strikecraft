@@ -53,13 +53,20 @@ Earnings dates come from SEC EDGAR filings.
 
 ## On your phone
 
-Start it so other devices on your network (or tailnet) can reach it, then open the printed address on the phone and use "Add to Home screen":
+The UI is a phone layout in its own right (tabs for chain, ticket and orders; the scenario grid turns on its side). To use the copy running on your computer from your phone:
 
 ```bash
 npx strikebench --host 0.0.0.0
 ```
 
-Anyone who can reach that address can use your connected broker, so only do this on a network you trust.
+Open the printed address on the phone. Anyone who can reach that address can use your connected broker, so only do this on a network you trust.
+
+**Installing it as an app** ("Install app" in Chrome, "Add to Home Screen" in Safari) needs HTTPS or `localhost`, because browsers only run a service worker on a secure origin. Two ways to get that without exposing anything to the internet:
+
+- [Tailscale](https://tailscale.com): `tailscale serve 4173` gives the server an HTTPS address reachable only from your own devices. Start Strikebench with `--allow-host <your-machine>.<tailnet>.ts.net`.
+- Android over USB: `adb reverse tcp:4173 tcp:4173`, then open `http://localhost:4173` on the phone.
+
+<img src="docs/img/android-standalone.png" alt="Strikebench installed on Android, running as a standalone app" width="240">
 
 ## The math, and why you can check it
 

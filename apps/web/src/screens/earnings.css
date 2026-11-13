@@ -122,3 +122,16 @@ table.data.earn-q th[aria-sort='descending'] button {
     padding-right: 6px;
   }
 }
+
+/* Symbols differ (some have no earnings date, some list more expiries): the top row keeps one
+   height so the history below never jumps when the symbol changes. */
+@media (min-width: 720px) {
+  .earn > .earn-next,
+  .earn > .earn-crush-cell {
+    min-height: 480px;
+  }
+  .earn > .earn-next > .panel,
+  .earn > .earn-crush-cell > .panel {
+    height: 100%;
+  }
+}
