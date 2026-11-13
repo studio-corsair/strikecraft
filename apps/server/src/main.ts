@@ -78,6 +78,9 @@ export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env):
  * Global fetch as the minimal shape broker adapters take, with a deadline: a broker that stops
  * answering fails the request with a clear error instead of hanging every screen that uses it.
  */
+const RESEND_WARNING =
+  'The request may still have reached the broker: check your working and filled orders before sending it again';
+
 /** True when a request that got no answer could still have placed, changed or canceled an order. */
 function mayHaveActed(url: string, init?: { method?: string; body?: string }): boolean {
   if ((init?.method ?? 'GET') === 'GET') return false;
@@ -99,15 +102,14 @@ export const makeNodeFetch =
       const text = await res.text();
       return { ok: res.ok, status: res.status, text: async () => text };
     } catch (e) {
-      if (e instanceof Error && (e.name === 'TimeoutError' || e.name === 'AbortError'))
-        throw new Error(
-          `${new URL(url).host} did not answer within ${Math.round(timeoutMs / 1000)} s` +
-            // A write may have arrived even though no answer came back: never invite a blind resend.
-            (!mayHaveActed(url, init)
-              ? ''
-              : '. The request may still have reached the broker: check your working and filled orders before sending it again'),
-          { cause: e },
-        );
+      const host = new URL(url).host;
+      const timedOut = e instanceof Error && (e.name === 'TimeoutError' || e.name === 'AbortError');
+      // A write may have arrived even though no answer came back (deadline passed, connection dropped
+      // mid-response): never invite a blind resend.
+      const acted = mayHaveActed(url, init) ? `. ${RESEND_WARNING}` : '';
+      if (timedOut)
+        throw new Error(`${host} did not answer within ${Math.round(timeoutMs / 1000)} s${acted}`, { cause: e });
+      if (acted) throw new Error(`The connection to ${host} failed before it answered${acted}`, { cause: e });
       throw e;
     }
   };

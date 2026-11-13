@@ -236,6 +236,24 @@ describe('a bad request never takes the server down', () => {
   });
 });
 
+describe('a broker whose connection drops mid-order', () => {
+  it('says the order may have arrived, and says nothing of the kind for a read', async () => {
+    const { default: h } = await import('node:http');
+    const dropper = h.createServer((req) => req.socket.destroy());
+    servers.push(dropper);
+    const port = await listen(dropper, 0);
+    const f = makeNodeFetch(3000);
+    const sent = await f(`http://127.0.0.1:${port}/v1/accounts/X/orders`, { method: 'POST', body: 'a=1' }).catch(
+      (e: Error) => e,
+    );
+    expect((sent as Error).message).toBe(
+      `The connection to 127.0.0.1:${port} failed before it answered. The request may still have reached the broker: check your working and filled orders before sending it again`,
+    );
+    const read = await f(`http://127.0.0.1:${port}/v1/accounts/X/orders`).catch((e: Error) => e);
+    expect((read as Error).message).not.toContain('may still have reached');
+  });
+});
+
 describe('a broker that stops answering', () => {
   it('fails the call after the deadline with the host named, instead of hanging', async () => {
     const { default: h } = await import('node:http');
@@ -256,6 +274,9 @@ describe('a broker that stops answering', () => {
     ).rejects.toThrow(
       'may still have reached the broker: check your working and filled orders before sending it again',
     );
+    // Reading the order list places nothing either.
+    const listed = await fetchWithDeadline(`http://127.0.0.1:${port}/v1/accounts/X/orders`).catch((e: Error) => e);
+    expect((listed as Error).message).toBe(`127.0.0.1:${port} did not answer within 0 s`);
     // A login or a preview places nothing: no order warning for those.
     for (const [path, body] of [
       ['/oauth/token', 'grant_type=refresh_token'],
