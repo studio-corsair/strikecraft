@@ -3,7 +3,7 @@
 // release dates + release time, from 8-K Item 2.02 filings). Read-only, no keys.
 import { httpFetch } from './http.ts';
 import type { Json } from './http.ts';
-import type { RawOptionRow } from '@strikebench/core';
+import type { RawOptionRow } from '@strikecraft/core';
 const UA = { 'User-Agent': 'Mozilla/5.0' };
 // SEC asks automated clients to identify themselves; a generic tool name (no personal contact) is used.
 const SEC_UA = { 'User-Agent': 'finance-analytics research-tool', Accept: 'application/json' };

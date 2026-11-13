@@ -4,7 +4,7 @@
 // the chain is normalized (core buildExpiry: mark falls back to last trade, OI stats are withheld).
 import * as data from './data.ts';
 import type { Json } from './http.ts';
-import { rnd } from '@strikebench/core';
+import { rnd } from '@strikecraft/core';
 import { tag } from '../types.ts';
 import type { MarketData, SourceInfo } from '../types.ts';
 

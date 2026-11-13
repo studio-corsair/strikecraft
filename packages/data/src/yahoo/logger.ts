@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { marketState, expiryChain, expirations, defaultLogDir } from './live.ts';
-import { expirySummary, constantMaturityIv, eventVariance, expiryMs, rnd } from '@strikebench/core';
+import { expirySummary, constantMaturityIv, eventVariance, expiryMs, rnd } from '@strikecraft/core';
 import * as data from './data.ts';
 import type { Json } from './http.ts';
 

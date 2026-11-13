@@ -5,11 +5,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type http from 'node:http';
-import { createService, demoSource, defaultDemoSnapshots, memoryStore } from '@strikebench/data';
-import type { FetchLike, StateStore } from '@strikebench/data';
+import { createService, demoSource, defaultDemoSnapshots, memoryStore } from '@strikecraft/data';
+import type { FetchLike, StateStore } from '@strikecraft/data';
 import { createServer, listen, hostAllowed } from '../src/server.ts';
 import { fileStore } from '../src/store.ts';
-import { parseArgs, serviceOptions, HELP } from '../src/main.ts';
+import { parseArgs, serviceOptions, HELP, makeNodeFetch } from '../src/main.ts';
 
 const demo = demoSource(defaultDemoSnapshots());
 const servers: http.Server[] = [];
@@ -50,7 +50,7 @@ async function start(
     const res = await fetch(base + p, {
       method,
       headers: {
-        ...(method === 'GET' ? {} : { 'X-Strikebench': '1', 'Content-Type': 'application/json' }),
+        ...(method === 'GET' ? {} : { 'X-Strikecraft': '1', 'Content-Type': 'application/json' }),
         ...headers,
       },
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -154,7 +154,7 @@ describe('same-origin guards', () => {
     const bad = await fetch(`${base}/api/analyze`, {
       method: 'POST',
       body: '{not json',
-      headers: { 'Content-Type': 'application/json', 'X-Strikebench': '1' },
+      headers: { 'Content-Type': 'application/json', 'X-Strikecraft': '1' },
     });
     expect(bad.status).toBe(400);
   });
@@ -181,6 +181,76 @@ describe('reaching it under another name (a tailnet HTTPS address)', () => {
     expect(await raw(port, { Host: 'LAPTOP.tail1234.ts.net:443' })).toBe(200);
     expect(await raw(port, { Host: 'other.tail1234.ts.net' })).toBe(403);
     expect(await raw(port, { Host: 'laptop.tail1234.ts.net', Origin: 'https://evil.example' })).toBe(403);
+  });
+});
+
+describe('a bad request never takes the server down', () => {
+  // Raw HTTP: fetch() normalises URLs and cannot send these headers.
+  const raw = async (port: number, path: string, headers: Record<string, string> = {}) => {
+    const { default: h } = await import('node:http');
+    return new Promise<{ status: number; body: string }>((resolve, reject) => {
+      const req = h.request(
+        { host: '127.0.0.1', port, path, headers: { Host: `127.0.0.1:${port}`, ...headers } },
+        (r) => {
+          let body = '';
+          r.on('data', (c) => (body += c));
+          r.on('end', () => resolve({ status: r.statusCode ?? 0, body }));
+        },
+      );
+      req.on('error', reject);
+      req.end();
+    });
+  };
+  it('answers a malformed path and an opaque Origin, and keeps serving', async () => {
+    const dir = tmp();
+    fs.writeFileSync(path.join(dir, 'index.html'), '<!doctype html><title>app</title>');
+    const { port, call } = await start({ staticDir: dir });
+    // What any web page could make the browser send: <img src="http://127.0.0.1:4173/%E0">
+    expect((await raw(port, '/%E0')).status).toBe(400);
+    expect((await raw(port, '/%zz')).status).toBe(400);
+    // Sandboxed iframes and file:// pages send the literal string "null".
+    const opaque = await raw(port, '/api/status', { Origin: 'null' });
+    expect(opaque.status).toBe(403);
+    expect(JSON.parse(opaque.body)).toEqual({ error: 'cross-origin requests are not allowed' });
+    expect((await raw(port, '/api/status', { Origin: 'not a url at all' })).status).toBe(403);
+    // Still alive and answering.
+    expect((await call('GET', '/api/status')).status).toBe(200);
+    expect((await raw(port, '/')).status).toBe(200);
+  });
+  it('survives a client that hangs up in the middle of a request body', async () => {
+    const { port, call } = await start();
+    const { default: net } = await import('node:net');
+    await new Promise<void>((resolve) => {
+      const sock = net.connect(port, '127.0.0.1', () => {
+        sock.write(
+          'POST /api/analyze HTTP/1.1\r\nHost: 127.0.0.1\r\nX-Strikecraft: 1\r\nContent-Type: application/json\r\nContent-Length: 5000\r\n\r\n{"symbol":',
+        );
+        setTimeout(() => {
+          sock.destroy();
+          resolve();
+        }, 50);
+      });
+    });
+    await new Promise((r) => setTimeout(r, 100));
+    expect((await call('GET', '/api/status')).status).toBe(200);
+  });
+});
+
+describe('a broker that stops answering', () => {
+  it('fails the call after the deadline with the host named, instead of hanging', async () => {
+    const { default: h } = await import('node:http');
+    const silent = h.createServer(() => {
+      /* never answers */
+    });
+    servers.push(silent);
+    const port = await listen(silent, 0);
+    const fetchWithDeadline = makeNodeFetch(150);
+    const started = Date.now();
+    await expect(fetchWithDeadline(`http://127.0.0.1:${port}/v1/user/profile`)).rejects.toThrow(
+      `127.0.0.1:${port} did not answer within 0 s`,
+    );
+    expect(Date.now() - started).toBeLessThan(3000);
+    silent.closeAllConnections();
   });
 });
 
@@ -320,7 +390,7 @@ describe('command line', () => {
       open: false,
       allowHosts: ['box.tail.ts.net'],
     });
-    expect(parseArgs([], { STRIKEBENCH_PORT: '5000', STRIKEBENCH_DEMO: '1' })).toMatchObject({
+    expect(parseArgs([], { STRIKECRAFT_PORT: '5000', STRIKECRAFT_DEMO: '1' })).toMatchObject({
       port: 5000,
       demo: true,
     });

@@ -2,8 +2,8 @@
 // The page runs against the demo server (simulated, deterministic market); the test computes the
 // expected values in-process from the same demo data with the core functions.
 import { test, expect } from '@playwright/test';
-import { positionValue, probability, cost, parseLeg } from '@strikebench/core';
-import { createEngine, createLadder, demoSource, defaultDemoSnapshots } from '@strikebench/data';
+import { positionValue, probability, cost, parseLeg } from '@strikecraft/core';
+import { createEngine, createLadder, demoSource, defaultDemoSnapshots } from '@strikecraft/data';
 import { usd, usdCompact, pct, num } from '../apps/web/src/format.ts';
 
 const LEGS = [

@@ -121,7 +121,7 @@ export const BROKERS: BrokerEntry[] = [
     },
     envs: ['sandbox', 'live'],
     credentials: [{ key: 'gatewayUrl', label: 'Client Portal Gateway URL', secret: false }],
-    credentialHelp: 'Run the IBKR Client Portal Gateway locally and log in; Strikebench talks to it on localhost.',
+    credentialHelp: 'Run the IBKR Client Portal Gateway locally and log in; Strikecraft talks to it on localhost.',
     docsUrl: 'https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/',
     plannedNote: 'Needs the local gateway running; adapter follows the same interface.',
   },

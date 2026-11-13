@@ -1,10 +1,10 @@
 {
-  "name": "strikebench-monorepo",
+  "name": "strikecraft-monorepo",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
-  "description": "Strikebench: a free, open-source options workstation that runs on your own broker API key",
+  "description": "Strikecraft: a free, open-source options workstation that runs on your own broker API key",
   "workspaces": [
     "packages/*",
     "apps/*"
@@ -17,8 +17,8 @@
     "check:fast": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/harness/tsbuildinfo && vitest run --changed ${HARNESS_BASE:-HEAD} --passWithNoTests",
     "check:full": "tsc --noEmit && eslint . --max-warnings=0 && vitest run --coverage --passWithNoTests",
     "check:ui": "harness gate routes --write && playwright test",
-    "build": "npm run -s build -w @strikebench/web",
-    "build:demo": "STRIKEBENCH_DEMO=1 npm run -s build -w @strikebench/web -- --outDir dist-demo",
+    "build": "npm run -s build -w @strikecraft/web",
+    "build:demo": "STRIKECRAFT_DEMO=1 npm run -s build -w @strikecraft/web -- --outDir dist-demo",
     "dev": "node apps/server/src/bin.ts --no-open",
     "serve": "npm run -s build && node apps/server/src/bin.ts --demo --no-open --static apps/web/dist",
     "start": "node apps/server/src/bin.ts",

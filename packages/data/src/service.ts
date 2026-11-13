@@ -3,8 +3,8 @@
 //   - the local server exposes these methods over HTTP (apps/server), and
 //   - the hosted demo calls them directly in the browser over demo data.
 // Keys never pass through here to anywhere except the adapter of the broker they belong to.
-import { expiryMs, expirySummary, cost as legCost } from '@strikebench/core';
-import type { Leg } from '@strikebench/core';
+import { expiryMs, expirySummary, cost as legCost } from '@strikecraft/core';
+import type { Leg } from '@strikecraft/core';
 import { createEngine } from './engine.ts';
 import type { Engine, EngineOptions, MarketState } from './engine.ts';
 import { createLadder } from './ladder.ts';
@@ -142,6 +142,16 @@ export async function createService(o: ServiceOptions) {
   }
   rebuild();
 
+  /**
+   * Change connections or settings: write to the store first, and only when that succeeded make it
+   * the state in effect. A failed save leaves memory, status and the brokers exactly as they were.
+   */
+  async function commit(next: SavedState) {
+    await o.store.save(next);
+    saved = next;
+    rebuild();
+  }
+
   /** The broker orders go to: the most recently connected one, else the built-in paper account. */
   const active = () => {
     const last = [...connected.entries()].at(-1);
@@ -167,7 +177,7 @@ export async function createService(o: ServiceOptions) {
   const noDemo = (what: string) => {
     if (o.mode === 'demo')
       throw new Error(
-        `${what} is not available in the demo: install Strikebench locally (npx strikebench) to connect your own broker.`,
+        `${what} is not available in the demo: install Strikecraft locally (npx strikecraft) to connect your own broker.`,
       );
   };
 
@@ -341,31 +351,25 @@ export async function createService(o: ServiceOptions) {
       const broker = createBroker(brokerId, credentials, env, { ...o.deps, allowLiveOrders: false });
       const accounts = await broker.accounts();
       if (!accounts.length) throw new Error(`${broker.label} accepted the key but returned no accounts`);
-      saved = {
+      await commit({
         ...saved,
         connections: [
           ...saved.connections.filter((c) => c.broker !== brokerId),
           { broker: brokerId, env, credentials, accountId: accounts[0]!.id },
         ],
-      };
-      await o.store.save(saved);
-      rebuild();
+      });
       return { ok: true, broker: brokerId, env, accounts: accounts.length };
     },
 
     async disconnect(brokerId: string) {
       noDemo('Disconnecting a broker');
-      saved = { ...saved, connections: saved.connections.filter((c) => c.broker !== brokerId) };
-      await o.store.save(saved);
-      rebuild();
+      await commit({ ...saved, connections: saved.connections.filter((c) => c.broker !== brokerId) });
       return { ok: true };
     },
 
     async setSettings(patch: Partial<Settings>) {
       if (patch.allowLiveOrders === true) noDemo('Live trading');
-      saved = { ...saved, settings: { ...saved.settings, ...patch } };
-      await o.store.save(saved);
-      rebuild();
+      await commit({ ...saved, settings: { ...saved.settings, ...patch } });
       return saved.settings;
     },
 

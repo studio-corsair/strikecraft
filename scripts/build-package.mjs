@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-// Build the publishable `strikebench` package: the server bundled into one file plus the built UI.
-//   node scripts/build-package.mjs   →  packages/strikebench/dist/{cli.mjs,web/}
+// Build the publishable `strikecraft` package: the server bundled into one file plus the built UI.
+//   node scripts/build-package.mjs   →  packages/strikecraft/dist/{cli.mjs,web/}
 import { build } from 'esbuild';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const out = path.join(root, 'packages/strikebench/dist');
+const out = path.join(root, 'packages/strikecraft/dist');
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
 
@@ -30,8 +30,8 @@ await build({
 fs.chmodSync(path.join(out, 'cli.mjs'), 0o755);
 for (const f of ['LICENSE', 'README.md'])
   if (fs.existsSync(path.join(root, f)))
-    fs.copyFileSync(path.join(root, f), path.join(root, 'packages/strikebench', f));
+    fs.copyFileSync(path.join(root, f), path.join(root, 'packages/strikecraft', f));
 
 const size = (p) => (fs.statSync(p).size / 1024).toFixed(0);
 const web = fs.readdirSync(path.join(out, 'web'), { recursive: true }).length;
-console.log(`built packages/strikebench/dist: cli.mjs ${size(path.join(out, 'cli.mjs'))} kB, web/ ${web} files`);
+console.log(`built packages/strikecraft/dist: cli.mjs ${size(path.join(out, 'cli.mjs'))} kB, web/ ${web} files`);

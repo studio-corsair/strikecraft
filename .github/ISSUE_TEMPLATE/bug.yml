@@ -8,7 +8,7 @@ body:
     validations: { required: true }
   - type: input
     id: version
-    attributes: { label: Version, description: "strikebench --version, or 'demo'" }
+    attributes: { label: Version, description: "strikecraft --version, or 'demo'" }
   - type: input
     id: where
     attributes: { label: Browser and device }

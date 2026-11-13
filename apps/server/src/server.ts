@@ -1,17 +1,17 @@
-// The local Strikebench server: serves the UI and answers /api/* from the service. It runs on
+// The local Strikecraft server: serves the UI and answers /api/* from the service. It runs on
 // the user's own machine; broker and market-data calls go out from here, never through a server
 // of ours.
 //
 // Because it holds broker keys, every /api request must look like it came from our own page:
 //   - the Host header must be one this server was started for (stops DNS-rebinding);
 //   - an Origin header, when present, must match that Host;
-//   - anything that is not a GET must carry `X-Strikebench: 1` and a JSON content type, which a
+//   - anything that is not a GET must carry `X-Strikecraft: 1` and a JSON content type, which a
 //     cross-site form or a no-CORS fetch cannot send (we never answer CORS preflights).
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import type { Service } from '@strikebench/data';
+import type { Service } from '@strikecraft/data';
 import { createApi } from './app.ts';
 
 export interface ServerOptions {
@@ -80,7 +80,12 @@ export function createServer(o: ServerOptions): http.Server {
   function serveStatic(urlPath: string, res: http.ServerResponse) {
     if (!o.staticDir) return send(res, 404, { error: 'the UI is not built: run `npm run build`' });
     const root = path.resolve(o.staticDir);
-    const rel = decodeURIComponent(urlPath).replace(/^\/+/, '');
+    let rel: string;
+    try {
+      rel = decodeURIComponent(urlPath).replace(/^\/+/, '');
+    } catch {
+      return send(res, 400, { error: 'the path is not valid percent-encoding' }); // error-ok: answered with a 400; a malformed URL is the client's error
+    }
     let file = path.resolve(root, rel || 'index.html');
     // Never serve outside the UI directory; unknown paths get the app shell (client-side routes).
     if (!file.startsWith(root + path.sep) && file !== root) file = path.join(root, 'index.html');
@@ -95,10 +100,22 @@ export function createServer(o: ServerOptions): http.Server {
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'no-referrer',
     });
-    fs.createReadStream(file).pipe(res);
+    const stream = fs.createReadStream(file);
+    // The file can vanish between the check and the read (a rebuild): end the response, keep serving.
+    stream.on('error', () => res.destroy());
+    stream.pipe(res);
   }
 
-  return http.createServer(async (req, res) => {
+  /** Host of an Origin header, or null when it is not a URL (sandboxed pages send the string "null"). */
+  const originHost = (origin: string): string | null => {
+    try {
+      return new URL(origin).host.toLowerCase();
+    } catch {
+      return null; // error-ok: an unparseable Origin is treated as a foreign origin and refused
+    }
+  };
+
+  async function handle(req: http.IncomingMessage, res: http.ServerResponse) {
     const url = new URL(req.url ?? '/', 'http://localhost');
     const method = req.method ?? 'GET';
     if (!hostAllowed(req.headers.host, allowed)) return send(res, 403, { error: 'this host name is not allowed' });
@@ -107,11 +124,11 @@ export function createServer(o: ServerOptions): http.Server {
       return serveStatic(url.pathname, res);
     }
     const origin = req.headers.origin;
-    if (origin && new URL(origin).host.toLowerCase() !== (req.headers.host ?? '').toLowerCase())
+    if (origin && originHost(origin) !== (req.headers.host ?? '').toLowerCase())
       return send(res, 403, { error: 'cross-origin requests are not allowed' });
     let body: unknown = undefined;
     if (method !== 'GET') {
-      if (req.headers['x-strikebench'] !== '1') return send(res, 403, { error: 'missing X-Strikebench header' });
+      if (req.headers['x-strikecraft'] !== '1') return send(res, 403, { error: 'missing X-Strikecraft header' });
       if (method !== 'DELETE' && !String(req.headers['content-type'] ?? '').startsWith('application/json'))
         return send(res, 415, { error: 'the body must be application/json' });
       const chunks: Buffer[] = [];
@@ -132,6 +149,18 @@ export function createServer(o: ServerOptions): http.Server {
     }
     const out = await api({ method, path: url.pathname, query: url.searchParams, body });
     send(res, out.status, out.body);
+  }
+
+  // Nothing a request does may take the server down: it holds the user's broker session. Any
+  // error that escapes a handler (a malformed URL, a client that hangs up mid-upload) is answered
+  // with a 400 or 500 where a response is still possible, and logged.
+  return http.createServer((req, res) => {
+    handle(req, res).catch((e: unknown) => {
+      const message = e instanceof Error ? e.message : String(e);
+      console.error(`request failed: ${req.method} ${req.url}: ${message}`);
+      if (res.headersSent || res.writableEnded) return res.destroy();
+      send(res, e instanceof TypeError || e instanceof URIError ? 400 : 500, { error: `request failed: ${message}` });
+    });
   });
 }
 

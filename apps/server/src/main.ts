@@ -1,12 +1,12 @@
-// `strikebench` command: start the local server and open the UI.
+// `strikecraft` command: start the local server and open the UI.
 import path from 'node:path';
 import os from 'node:os';
 import fs from 'node:fs';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { createService, memoryStore, demoSource, defaultDemoSnapshots, cboeSource } from '@strikebench/data';
-import type { FetchLike, MarketDataSource, ServiceOptions } from '@strikebench/data';
-import { yahooSource, httpFetch } from '@strikebench/data/node';
+import { createService, memoryStore, demoSource, defaultDemoSnapshots, cboeSource } from '@strikecraft/data';
+import type { FetchLike, MarketDataSource, ServiceOptions } from '@strikecraft/data';
+import { yahooSource, httpFetch } from '@strikecraft/data/node';
 import { createServer, listen } from './server.ts';
 import { fileStore, defaultDataDir } from './store.ts';
 
@@ -24,16 +24,16 @@ export interface CliOptions {
   version: boolean;
 }
 
-export const HELP = `Strikebench ${VERSION}: an options workstation that runs on your own broker key.
+export const HELP = `Strikecraft ${VERSION}: an options workstation that runs on your own broker key.
 
-Usage: strikebench [options]
+Usage: strikecraft [options]
 
   --port <n>         Port to listen on (default 4173; 0 picks a free one)
   --host <addr>      Address to bind (default 127.0.0.1). Use 0.0.0.0 to open it to your
                      phone on the same network or tailnet.
   --allow-host <h>   Extra host name to accept (a tailnet or LAN name). Repeatable.
   --demo             Run on built-in simulated data: no network, no broker.
-  --data-dir <dir>   Where keys and settings are kept (default ~/.strikebench, mode 0600)
+  --data-dir <dir>   Where keys and settings are kept (default ~/.strikecraft, mode 0600)
   --no-open          Do not open the browser
   --version, --help
 
@@ -41,9 +41,9 @@ Keys stay on this machine. They are sent only to the broker they belong to.`;
 
 export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env): CliOptions {
   const o: CliOptions = {
-    port: Number(env.STRIKEBENCH_PORT ?? 4173),
-    host: env.STRIKEBENCH_HOST ?? '127.0.0.1',
-    demo: env.STRIKEBENCH_DEMO === '1',
+    port: Number(env.STRIKECRAFT_PORT ?? 4173),
+    host: env.STRIKECRAFT_HOST ?? '127.0.0.1',
+    demo: env.STRIKECRAFT_DEMO === '1',
     open: true,
     dataDir: defaultDataDir(),
     staticDir: null,
@@ -74,11 +74,29 @@ export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env):
   return o;
 }
 
-/** Global fetch as the minimal shape broker adapters take. */
-export const nodeFetch: FetchLike = async (url, init) => {
-  const res = await fetch(url, { method: init?.method, headers: init?.headers, body: init?.body });
-  return { ok: res.ok, status: res.status, text: () => res.text() };
-};
+/**
+ * Global fetch as the minimal shape broker adapters take, with a deadline: a broker that stops
+ * answering fails the request with a clear error instead of hanging every screen that uses it.
+ */
+export const makeNodeFetch =
+  (timeoutMs = 15_000): FetchLike =>
+  async (url, init) => {
+    try {
+      const res = await fetch(url, {
+        method: init?.method,
+        headers: init?.headers,
+        body: init?.body,
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      const text = await res.text();
+      return { ok: res.ok, status: res.status, text: async () => text };
+    } catch (e) {
+      if (e instanceof Error && (e.name === 'TimeoutError' || e.name === 'AbortError'))
+        throw new Error(`${new URL(url).host} did not answer within ${Math.round(timeoutMs / 1000)} s`, { cause: e });
+      throw e;
+    }
+  };
+export const nodeFetch: FetchLike = makeNodeFetch();
 
 export function serviceOptions(o: Pick<CliOptions, 'demo' | 'dataDir'>): ServiceOptions {
   const deps = { fetch: nodeFetch, WebSocket: globalThis.WebSocket as unknown as ServiceOptions['deps']['WebSocket'] };
@@ -132,7 +150,7 @@ export async function main(argv: string[]): Promise<void> {
   });
   const port = await listen(server, o.port, o.host);
   const local = `http://localhost:${port}`;
-  console.log(`Strikebench ${VERSION} is running: ${local}`);
+  console.log(`Strikecraft ${VERSION} is running: ${local}`);
   console.log(
     o.demo
       ? 'Mode: demo (simulated data, nothing leaves this machine).'

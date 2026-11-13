@@ -1,7 +1,7 @@
-// Strikebench service worker: makes the app installable and lets the shell open without a
+// Strikecraft service worker: makes the app installable and lets the shell open without a
 // network. It never touches /api/* (prices and orders are always live requests) and never caches
 // anything from another origin.
-const CACHE = 'strikebench-shell-v1';
+const CACHE = 'strikecraft-shell-v1';
 const SHELL = ['/', '/icon.svg', '/icon-192.png', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {

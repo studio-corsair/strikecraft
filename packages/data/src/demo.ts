@@ -8,8 +8,8 @@
 //   - simulated: `simulateSnapshot`, a seeded generator that prices a plausible chain from a vol
 //     surface with Black-Scholes. The public demo ships simulated data so that no vendor's
 //     quotes are redistributed; it is labelled as simulated wherever a price is shown.
-import { bsPrice, expiryMs, YEAR_MS } from '@strikebench/core';
-import type { RawOptionRow } from '@strikebench/core';
+import { bsPrice, expiryMs, YEAR_MS } from '@strikecraft/core';
+import type { RawOptionRow } from '@strikecraft/core';
 import { occ, sessionAt } from './symbols.ts';
 import type { DailyBar, EarningsDate, EarningsInfo, MarketData, Session, SourceInfo, SourceTag } from './types.ts';
 

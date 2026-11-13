@@ -69,7 +69,7 @@ const debit: OrderRequest = {
   type: 'debit',
   price: 1.2,
   duration: 'day',
-  tag: 'strikebench-sandbox-check',
+  tag: 'strikecraft-sandbox-check',
   legs: [
     { symbol: C1, side: 'buy_to_open', quantity: 1 },
     { symbol: C2, side: 'sell_to_open', quantity: 1 },
@@ -164,7 +164,7 @@ describe('tastytrade reads', () => {
       type: 'debit',
       price: 0.01,
       duration: 'day',
-      tag: 'strikebench-sandbox-check',
+      tag: 'strikecraft-sandbox-check',
       createdAt: '2026-11-13T18:26:52.513+00:00',
     });
     expect(o[0]!.legs).toEqual(debit.legs.map((l) => ({ ...l })));
@@ -212,7 +212,7 @@ describe('tastytrade orders', () => {
       'order-type': 'Limit',
       price: '1.20',
       'price-effect': 'Debit',
-      'external-identifier': 'strikebench-sandbox-check',
+      'external-identifier': 'strikecraft-sandbox-check',
       legs: [
         { 'instrument-type': 'Equity Option', symbol: 'NVDA  261218C00185000', quantity: 1, action: 'Buy to Open' },
         { 'instrument-type': 'Equity Option', symbol: 'NVDA  261218C00200000', quantity: 1, action: 'Sell to Open' },
@@ -549,7 +549,7 @@ const VERTICAL: OrderRequest = {
   type: 'debit',
   price: 0.01,
   duration: 'day',
-  tag: 'strikebench-sandbox-check',
+  tag: 'strikecraft-sandbox-check',
   legs: [
     { symbol: 'NVDA261218C01930000', side: 'buy_to_open', quantity: 1 },
     { symbol: 'NVDA261218C01940000', side: 'sell_to_open', quantity: 1 },
@@ -590,7 +590,7 @@ describe('tastytrade against recorded sandbox responses', () => {
     const placed = await b.placeOrder(RA, VERTICAL);
     expect(placed.state).toBe('pending');
     const working = (await b.orders(RA)).find((o) => o.id === placed.id);
-    expect(working).toMatchObject({ state: 'pending', type: 'debit', price: 0.01, tag: 'strikebench-sandbox-check' });
+    expect(working).toMatchObject({ state: 'pending', type: 'debit', price: 0.01, tag: 'strikecraft-sandbox-check' });
     expect(working!.legs.map((l) => l.side)).toEqual(['buy_to_open', 'sell_to_open']);
     expect(await b.cancelOrder(RA, placed.id)).toMatchObject({ id: placed.id, ok: true }); // "Cancel Requested"
     // /orders/live also lists today's terminal orders, so the cancel is observable there.

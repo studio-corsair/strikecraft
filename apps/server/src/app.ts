@@ -1,6 +1,6 @@
 // HTTP routes → service methods. Pure (no sockets), so the whole API is testable in-process.
-import type { BrokerEnv, LegInput, OrderRequest, Service } from '@strikebench/data';
-import { BrokerError, LiveTradingDisabledError } from '@strikebench/data';
+import type { BrokerEnv, LegInput, OrderRequest, Service } from '@strikecraft/data';
+import { BrokerError, LiveTradingDisabledError } from '@strikecraft/data';
 
 export interface ApiRequest {
   method: string;

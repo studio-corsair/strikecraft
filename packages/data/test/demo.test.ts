@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { bsPrice, parseLeg, expiryMs } from '@strikebench/core';
+import { bsPrice, parseLeg, expiryMs } from '@strikecraft/core';
 import { demoSource, simulateSnapshot, defaultDemoSnapshots, listedExpiries, prng, DEMO_AS_OF } from '../src/demo.ts';
 import type { DemoSnapshot } from '../src/demo.ts';
 import { createEngine } from '../src/engine.ts';

@@ -1,4 +1,4 @@
-# Owner-accepted traits for the Strikebench UI (ui-gate reads this file).
+# Owner-accepted traits for the Strikecraft UI (ui-gate reads this file).
 # Source: the project epic (SC-9857): "every price labelled with its source" and "the top bar
 # always names the source of each price, so a delayed number never passes for a live one".
 The pill in the header that names the data source of the quote ("Simulated demo data", "Yahoo · 15-min delayed", "Tradier · real-time") is a product requirement, not a decorative status badge: it tells the user whether the price beside it is live, delayed or simulated.

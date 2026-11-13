@@ -13,7 +13,7 @@ type Rung = Status['ladder'][number];
 type SortKey = 'name' | 'status' | 'optionOrders' | 'multiLeg' | 'quotes' | 'paper' | 'signIn';
 
 const DEMO_SENTENCE =
-  'The demo runs on simulated data. Install Strikebench on your own machine (npx strikebench) to connect a broker.';
+  'The demo runs on simulated data. Install Strikecraft on your own machine (npx strikecraft) to connect a broker.';
 
 const errText = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 const envLabel = (env: string): string =>

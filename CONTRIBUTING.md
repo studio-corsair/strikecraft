@@ -9,7 +9,7 @@ npm install
 npm test               # unit and contract tests (no network)
 npx playwright test    # end-to-end tests on built-in simulated data
 npm run dev -- --demo  # server on :4173 with simulated data
-npm run dev -w @strikebench/web   # UI with hot reload on :5173
+npm run dev -w @strikecraft/web   # UI with hot reload on :5173
 ```
 
 Node 20 or newer. The code is TypeScript run directly (no build step for the server in development).
@@ -38,4 +38,4 @@ Implement whichever methods of [`MarketDataSource`](packages/data/src/types.ts) 
 
 ## Reporting a wrong number
 
-Open an issue with the inputs (symbol, legs, date), what Strikebench showed, and what you expected with a source. A wrong number is the most serious kind of bug here.
+Open an issue with the inputs (symbol, legs, date), what Strikecraft showed, and what you expected with a source. A wrong number is the most serious kind of bug here.

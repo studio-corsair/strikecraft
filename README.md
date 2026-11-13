@@ -1,10 +1,10 @@
-# Strikebench
+# Strikecraft
 
 A free, open-source options workstation. It analyzes and trades through **your own broker API key**, runs on **your own machine**, and works on a phone.
 
 ```bash
-npx strikebench          # opens http://localhost:4173
-npx strikebench --demo   # try it on built-in simulated data: no account, no network
+npx strikecraft          # opens http://localhost:4173
+npx strikecraft --demo   # try it on built-in simulated data: no account, no network
 ```
 
 ![Analyze screen: position, risk profile by date, greeks, scenario grid, probabilities and the earnings effect](docs/img/analyze-desktop.png)
@@ -26,8 +26,8 @@ npx strikebench --demo   # try it on built-in simulated data: no account, no net
 
 ## How your data and keys are handled
 
-- **Nothing goes through a server of ours.** There isn't one. `npx strikebench` starts a small server on your machine; it talks to your broker and to public data sources directly.
-- **Your key stays on your machine**, in `~/.strikebench/config.json`, readable only by you (mode 0600). It is sent to exactly one place: the broker it belongs to. A test asserts this on every route ([`apps/server/test/server.test.ts`](apps/server/test/server.test.ts)).
+- **Nothing goes through a server of ours.** There isn't one. `npx strikecraft` starts a small server on your machine; it talks to your broker and to public data sources directly.
+- **Your key stays on your machine**, in `~/.strikecraft/config.json`, readable only by you (mode 0600). It is sent to exactly one place: the broker it belongs to. A test asserts this on every route ([`apps/server/test/server.test.ts`](apps/server/test/server.test.ts)).
 - **Live orders are off by default.** Until you switch on "Allow live orders", no order can reach a live account: the adapter refuses before any request is made. Sandbox and paper orders always work. Every order is previewed with the broker first, and what is sent is exactly what was previewed.
 - **Every price names its source.** The top bar says whether a quote is real-time from your broker or delayed from a public feed. A delayed number never passes for a live one.
 
@@ -47,7 +47,7 @@ Earnings dates come from SEC EDGAR filings.
 | Broker                                                              | Status                                                                                                                                          |
 | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | Tradier                                                             | Available: sandbox (paper) and live. Checked end to end against the real sandbox.                                                               |
-| tastytrade                                                          | Adapter written and contract-tested; switched on after its live sandbox check.                                                                  |
+| tastytrade                                                          | Available: certification sandbox (paper) and live, OAuth. Checked end to end against the real sandbox, including streaming quotes.              |
 | Charles Schwab, Interactive Brokers, Alpaca, TradeStation, E\*TRADE | Planned, behind the same [`Broker` interface](packages/data/src/broker/types.ts). Adapters are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). |
 | Paper account                                                       | Built in. Simulated fills, no account needed.                                                                                                   |
 
@@ -56,17 +56,17 @@ Earnings dates come from SEC EDGAR filings.
 The UI is a phone layout in its own right (tabs for chain, ticket and orders; the scenario grid turns on its side). To use the copy running on your computer from your phone:
 
 ```bash
-npx strikebench --host 0.0.0.0
+npx strikecraft --host 0.0.0.0
 ```
 
 Open the printed address on the phone. Anyone who can reach that address can use your connected broker, so only do this on a network you trust.
 
 **Installing it as an app** ("Install app" in Chrome, "Add to Home Screen" in Safari) needs HTTPS or `localhost`, because browsers only run a service worker on a secure origin. Two ways to get that without exposing anything to the internet:
 
-- [Tailscale](https://tailscale.com): `tailscale serve 4173` gives the server an HTTPS address reachable only from your own devices. Start Strikebench with `--allow-host <your-machine>.<tailnet>.ts.net`.
+- [Tailscale](https://tailscale.com): `tailscale serve 4173` gives the server an HTTPS address reachable only from your own devices. Start Strikecraft with `--allow-host <your-machine>.<tailnet>.ts.net`.
 - Android over USB: `adb reverse tcp:4173 tcp:4173`, then open `http://localhost:4173` on the phone.
 
-<img src="docs/img/android-standalone.png" alt="Strikebench installed on Android, running as a standalone app" width="240">
+<img src="docs/img/android-standalone.png" alt="Strikecraft installed on Android, running as a standalone app" width="240">
 
 ## The math, and why you can check it
 
@@ -83,22 +83,22 @@ Models and their limits are stated, not hidden: probabilities assume a lognormal
 ## Options
 
 ```
-strikebench [options]
+strikecraft [options]
   --port <n>         Port to listen on (default 4173; 0 picks a free one)
   --host <addr>      Address to bind (default 127.0.0.1)
   --allow-host <h>   Extra host name to accept (a tailnet or LAN name). Repeatable.
   --demo             Built-in simulated data: no network, no broker
-  --data-dir <dir>   Where keys and settings are kept (default ~/.strikebench)
+  --data-dir <dir>   Where keys and settings are kept (default ~/.strikecraft)
   --no-open          Do not open the browser
 ```
 
 ## Develop
 
 ```bash
-git clone https://github.com/studio-corsair/strikebench && cd strikebench
+git clone https://github.com/studio-corsair/strikecraft && cd strikecraft
 npm install
 npm run dev            # API server on :4173 (add -- --demo for simulated data)
-npm run dev -w @strikebench/web   # UI with hot reload on :5173
+npm run dev -w @strikecraft/web   # UI with hot reload on :5173
 npm test               # unit and contract tests
 npx playwright test    # end-to-end tests on the demo
 ```
@@ -112,8 +112,8 @@ npx playwright test    # end-to-end tests on the demo
 
 ## Not investment advice
 
-Strikebench is software, not a broker or an adviser. Options can lose more than you put in. Check every order before you send it.
+Strikecraft is software, not a broker or an adviser. Options can lose more than you put in. Check every order before you send it.
 
 ## License
 
-[Apache-2.0](LICENSE). Strikebench is an independent project and is not affiliated with any broker or trading platform.
+[Apache-2.0](LICENSE). Strikecraft is an independent project and is not affiliated with any broker or trading platform.

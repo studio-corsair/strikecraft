@@ -14,6 +14,8 @@ export const TABS: { id: Tab; label: string }[] = [
 
 export interface Loaded<T> {
   data: T | null;
+  /** The key of the request that produced `data` (it can lag behind the current key while loading or after a failure). */
+  dataKey: string | null;
   error: string | null;
   loading: boolean;
   reload: () => void;
@@ -24,8 +26,14 @@ export interface Loaded<T> {
  * request is in flight (no flash to empty), and ignores answers that arrive out of order.
  */
 export function useLoad<T>(key: string | null, load: () => Promise<T>): Loaded<T> {
-  const [state, setState] = useState<{ data: T | null; error: string | null; loading: boolean }>({
+  const [state, setState] = useState<{
+    data: T | null;
+    dataKey: string | null;
+    error: string | null;
+    loading: boolean;
+  }>({
     data: null,
+    dataKey: null,
     error: null,
     loading: key != null,
   });
@@ -35,16 +43,16 @@ export function useLoad<T>(key: string | null, load: () => Promise<T>): Loaded<T
   fn.current = load;
   useEffect(() => {
     if (key == null) {
-      setState({ data: null, error: null, loading: false });
+      setState({ data: null, dataKey: null, error: null, loading: false });
       return;
     }
     const mine = ++seq.current;
     setState((s) => ({ ...s, loading: true }));
     fn.current().then(
-      (data) => mine === seq.current && setState({ data, error: null, loading: false }),
+      (data) => mine === seq.current && setState({ data, dataKey: key, error: null, loading: false }),
       (e: unknown) =>
         mine === seq.current &&
-        setState((s) => ({ data: s.data, error: e instanceof Error ? e.message : String(e), loading: false })),
+        setState((s) => ({ ...s, error: e instanceof Error ? e.message : String(e), loading: false })),
     );
   }, [key, tick]);
   const reload = useCallback(() => setTick((t) => t + 1), []);

@@ -99,3 +99,28 @@ test('the chain pages through strikes without changing size, and stops at the en
   expect((await strikes()).length).toBeGreaterThan(0);
   await expect(higher).toBeEnabled();
 });
+
+test('the ticket is priced only from its own legs: removing a leg never leaves the old net price', async ({ page }) => {
+  await page.goto('/trade');
+  const mid = async (name: RegExp) => {
+    const text = (await page.getByRole('button', { name }).getAttribute('aria-label')) ?? '';
+    return Number(/\(([\d.]+)\)$/.exec(text)![1]);
+  };
+  const bid175 = await mid(/^Sell 175 call at the bid/);
+  const ask175 = await mid(/^Buy 175 call at the ask/);
+  await page.getByRole('button', { name: /^Buy 175 call at the ask/ }).click();
+  await page.getByRole('button', { name: /^Sell 185 call at the bid/ }).click();
+  const price = page.locator('#ticket-price');
+  await expect(page.getByLabel(/^Net debit/)).toBeVisible();
+  await expect.poll(async () => Number(await price.getAttribute('placeholder'))).toBeGreaterThan(0); // priced
+  const spreadMid = Number(await price.getAttribute('placeholder'));
+  // Remove the short leg: the ticket is now one long call, priced at that call's own mid.
+  await page.getByRole('button', { name: /^Remove −1 .*185 Call from the ticket/ }).click();
+  await expect(page.getByTestId('ticket-leg')).toHaveCount(1);
+  await expect(page.getByLabel(/^Limit price/)).toBeVisible();
+  const single = (bid175 + ask175) / 2;
+  await expect.poll(async () => Number(await price.getAttribute('placeholder'))).toBeCloseTo(single, 1);
+  expect(Math.abs(single - spreadMid)).toBeGreaterThan(0.5); // the two prices really differ
+  // While the new price was loading the old one was never offered: Preview stays disabled until priced.
+  await expect(page.getByRole('button', { name: 'Preview order' })).toBeEnabled();
+});

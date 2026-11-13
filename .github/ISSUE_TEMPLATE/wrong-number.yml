@@ -16,7 +16,7 @@ body:
     id: shown
     attributes:
       {
-        label: What Strikebench showed,
+        label: What Strikecraft showed,
         description: 'Which screen, which number, and the data source named in the top bar',
       }
     validations: { required: true }

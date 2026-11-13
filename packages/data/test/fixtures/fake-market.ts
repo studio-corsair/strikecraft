@@ -2,8 +2,8 @@
 // src/http.mjs's httpFetch (tests vi.mock it); `calls` records every URL requested.
 // Rebuilt 2026-11-13: the harness gap-filler admitted tests importing this file but never copied
 // the fixture out of its sandbox.
-import { bsPrice } from '@strikebench/core';
-import { expiryMs } from '@strikebench/core';
+import { bsPrice } from '@strikecraft/core';
+import { expiryMs } from '@strikecraft/core';
 
 export const SYM = 'TEST';
 export const NOW = Date.UTC(2026, 5, 1, 15, 0, 0); // Mon 2026-06-01 11:00 EDT (regular session)

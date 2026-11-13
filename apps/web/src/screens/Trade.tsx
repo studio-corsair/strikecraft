@@ -21,6 +21,8 @@ import type { Intent } from '../ticket.ts';
 import './trade.css';
 
 type Section = 'chain' | 'ticket' | 'orders';
+/** Order states with something left to cancel (a partly filled order still has an unfilled rest). */
+const CANCELABLE = new Set(['open', 'pending', 'partially_filled']);
 const WINDOW = 6; // strikes shown each side of the centre of the window
 // A page is a whole window: no strike appears on two pages, so a contract never changes place.
 const PAGE = 2 * WINDOW + 1;
@@ -330,7 +332,10 @@ function Ticket({
       { ivShifts: [0], moves: [0] },
     ),
   );
-  const a = has ? an.data : null;
+  // Only an analysis of exactly these legs may price the ticket: while a new one loads (or after
+  // it failed) the previous answer belongs to different legs and must not set a price or a side.
+  const ticketKey = has ? `ticket:${symbol}:${legsKey}` : null;
+  const a = has && an.dataKey === ticketKey ? an.data : null;
   const net = a
     ? netMid(
         legs,
@@ -693,7 +698,7 @@ function Orders({
                       className="btn small"
                       data-uisweep-destructive
                       onClick={() => cancel(o.id)}
-                      disabled={busy != null || (o.state !== 'open' && o.state !== 'pending')}
+                      disabled={busy != null || !CANCELABLE.has(o.state)}
                       aria-label={`Cancel order ${o.id}`}
                       aria-busy={busy === o.id}
                     >

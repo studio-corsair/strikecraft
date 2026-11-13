@@ -1,7 +1,7 @@
 // One interface for every place a price can come from. A source implements the methods it can
 // serve; the ladder (ladder.ts) stacks sources so the first one that answers wins. Every quote,
 // expiration list and chain slice carries a SourceTag, so a delayed number never passes for live.
-import type { RawOptionRow } from '@strikebench/core';
+import type { RawOptionRow } from '@strikecraft/core';
 
 export type SourceId =
   'tradier' | 'tastytrade' | 'schwab' | 'alpaca' | 'tradestation' | 'etrade' | 'ibkr' | 'yahoo' | 'cboe' | 'demo';

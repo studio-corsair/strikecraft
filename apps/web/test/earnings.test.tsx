@@ -21,8 +21,10 @@ describe('sortQuarters', () => {
     expect(sortQuarters(rows, 'date', 'desc')[0]!.date).toBe('2024-11-01');
   });
   it('does not mutate its input', () => {
-    sortQuarters(rows, 'movePct', 'asc');
-    expect(rows[0]!.date).toBe('2024-02-01');
+    const before = rows.map((r) => r.date);
+    // Descending by move puts 2024-05-01 first: an in-place sort would reorder `rows`.
+    expect(sortQuarters(rows, 'movePct', 'desc')[0]!.date).toBe('2024-05-01');
+    expect(rows.map((r) => r.date)).toEqual(before);
   });
 });
 

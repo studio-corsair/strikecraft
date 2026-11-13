@@ -120,7 +120,7 @@ try {
     type: 'debit',
     price: 0.01,
     duration: 'day',
-    tag: 'strikebench-sandbox-check',
+    tag: 'strikecraft-sandbox-check',
     legs: [
       { symbol: long.call, side: 'buy_to_open', quantity: 1 },
       { symbol: short.call, side: 'sell_to_open', quantity: 1 },

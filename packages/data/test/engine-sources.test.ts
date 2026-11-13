@@ -1,7 +1,7 @@
 // Regression tests for the phase-2 review findings: a result must name exactly the sources it
 // used, the chain cache must expire, and the ladder cooldown must not leak across symbols.
 import { describe, it, expect } from 'vitest';
-import { parseLeg, expiryMs } from '@strikebench/core';
+import { parseLeg, expiryMs } from '@strikecraft/core';
 import { createEngine } from '../src/engine.ts';
 import { createLadder } from '../src/ladder.ts';
 import { demoSource, simulateSnapshot, DEMO_AS_OF } from '../src/demo.ts';

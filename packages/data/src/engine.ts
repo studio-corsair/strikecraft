@@ -1,7 +1,7 @@
 // The analysis engine: turns a MarketData provider into the decision-grade JSON the UI, the CLI
 // and agents consume (analyze, chain, vol, earnings). It is provider-agnostic and has no Node
 // imports, so the same code runs in the local server and in the browser-only hosted demo.
-// The math it calls lives in @strikebench/core and is unit-tested against textbook vectors.
+// The math it calls lives in @strikecraft/core and is unit-tested against textbook vectors.
 import {
   buildExpiry,
   expirySummary,
@@ -25,8 +25,8 @@ import {
   reactionStats,
   rnd,
   mean,
-} from '@strikebench/core';
-import type { Leg, Expiry } from '@strikebench/core';
+} from '@strikecraft/core';
+import type { Leg, Expiry } from '@strikecraft/core';
 import { occ } from './symbols.ts';
 import type { MarketData, Session, SourceTag } from './types.ts';
 

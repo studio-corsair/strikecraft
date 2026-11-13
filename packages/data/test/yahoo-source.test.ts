@@ -2,7 +2,7 @@
 // The Yahoo rung must always say it is Yahoo, delayed 15 minutes, and when its numbers are from.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeFetch, NOW, SYM, S0, EXPIRIES, STRIKES } from './fixtures/fake-market.ts';
-import { parseLeg } from '@strikebench/core';
+import { parseLeg } from '@strikecraft/core';
 
 const h = vi.hoisted(() => ({ impl: null as null | ((u: string, i?: any) => Promise<any>) }));
 vi.mock('../src/yahoo/http.ts', () => ({ httpFetch: (u: string, i?: any) => h.impl!(u, i) }));

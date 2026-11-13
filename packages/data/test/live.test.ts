@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fakeFetch, NOW, SYM, S0, R, DIV_YIELD, STRIKES, type FakeOpts } from './fixtures/fake-market.ts';
-import { parseLeg, expiryMs, YEAR_MS, bsPrice } from '@strikebench/core';
+import { parseLeg, expiryMs, YEAR_MS, bsPrice } from '@strikecraft/core';
 
 const h = vi.hoisted(() => ({ impl: null as null | ((u: string, i?: any) => Promise<any>) }));
 vi.mock('../src/yahoo/http.ts', () => ({ httpFetch: (u: string, i?: any) => h.impl!(u, i) }));

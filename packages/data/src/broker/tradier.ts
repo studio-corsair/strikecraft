@@ -1,6 +1,6 @@
 // Tradier adapter (REST + streaming). Sandbox = paper trading on 15-minute-delayed data; live =
 // real-time quotes and real orders. Docs: https://docs.tradier.com (public API reference).
-import type { RawOptionRow } from '@strikebench/core';
+import type { RawOptionRow } from '@strikecraft/core';
 import { tag } from '../types.ts';
 import type { DailyBar, MarketDataSource, Session, SourceInfo } from '../types.ts';
 import { parseOcc } from '../symbols.ts';

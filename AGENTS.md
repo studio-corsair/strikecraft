@@ -1,8 +1,8 @@
-# Rules for anyone (human or AI agent) contributing to Strikebench
+# Rules for anyone (human or AI agent) contributing to Strikecraft
 
 ## Clean room
 
-Strikebench is an independent options workstation with its own design. It is not a copy of any broker platform.
+Strikecraft is an independent options workstation with its own design. It is not a copy of any broker platform.
 
 - Never read, decompile, or copy code, assets, icons, fonts, UI strings, or documentation text from thinkorswim, Schwab, or any other proprietary trading platform.
 - Do not name anything after another product's trademarks ("thinkorswim", "thinkScript", "TOS"). Referring to them nominatively in docs ("an alternative to …") is fine.

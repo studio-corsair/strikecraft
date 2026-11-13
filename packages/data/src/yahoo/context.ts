@@ -1,8 +1,8 @@
 // Market context that explains the numbers, each input paired with what it means for the position.
 import * as data from './data.ts';
 import type { Json } from './http.ts';
-import { rnd, median } from '@strikebench/core';
-import type { Leg } from '@strikebench/core';
+import { rnd, median } from '@strikecraft/core';
+import type { Leg } from '@strikecraft/core';
 import { marketState, positionBlock, fillLegs } from './live.ts';
 
 const r = (o: unknown) => data.raw<number | null>(o) ?? null;

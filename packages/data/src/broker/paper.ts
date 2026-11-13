@@ -195,7 +195,7 @@ export function paperBroker(opts: PaperOptions): Broker {
     async cancelOrder(_accountId, orderId) {
       const o = orders.find((x) => x.id === orderId);
       if (!o) throw new Error(`no paper order ${orderId}`);
-      if (o.state !== 'open' && o.state !== 'pending')
+      if (o.state !== 'open' && o.state !== 'pending' && o.state !== 'partially_filled')
         throw new Error(`paper order ${orderId} is ${o.state} and cannot be canceled`);
       o.state = 'canceled';
       return { id: orderId, ok: true, raw: { paper: true } };

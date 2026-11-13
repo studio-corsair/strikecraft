@@ -237,7 +237,7 @@ export function tastytradeBroker(opts: TastytradeOptions): TastytradeBroker {
   const host = env === 'sandbox' ? TASTYTRADE_HOSTS.sandbox : TASTYTRADE_HOSTS.live;
   const base = `https://${host}`;
   const allowLive = opts.allowLiveOrders === true;
-  const userAgent = opts.userAgent ?? 'strikebench/1.0';
+  const userAgent = opts.userAgent ?? 'strikecraft/1.0';
   const info: SourceInfo = {
     id: 'tastytrade',
     label: env === 'sandbox' ? 'tastytrade sandbox' : 'tastytrade',

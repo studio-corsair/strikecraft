@@ -1,11 +1,11 @@
 {
-  "name": "strikebench",
+  "name": "strikecraft",
   "version": "0.1.0",
   "description": "Free, open-source options workstation: risk profiles, probabilities and trading on your own broker API key. Runs locally.",
   "license": "Apache-2.0",
   "type": "module",
   "bin": {
-    "strikebench": "dist/cli.mjs"
+    "strikecraft": "dist/cli.mjs"
   },
   "files": [
     "dist",
@@ -28,8 +28,8 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/studio-corsair/strikebench.git"
+    "url": "git+https://github.com/studio-corsair/strikecraft.git"
   },
-  "homepage": "https://github.com/studio-corsair/strikebench#readme",
-  "bugs": "https://github.com/studio-corsair/strikebench/issues"
+  "homepage": "https://github.com/studio-corsair/strikecraft#readme",
+  "bugs": "https://github.com/studio-corsair/strikecraft/issues"
 }

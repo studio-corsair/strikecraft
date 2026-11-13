@@ -1,8 +1,8 @@
 // The UI's only door to data. Two implementations of the same interface:
-//   - httpApi: talks to the local Strikebench server on the same origin (/api/*).
+//   - httpApi: talks to the local Strikecraft server on the same origin (/api/*).
 //   - demoApi: runs the very same service in the browser over simulated data, so the hosted
 //     demo needs no server and nothing leaves the page.
-import type { BrokerEnv, LegInput, OrderRequest, Service, Settings } from '@strikebench/data';
+import type { BrokerEnv, LegInput, OrderRequest, Service, Settings } from '@strikecraft/data';
 
 declare const __DEMO__: boolean;
 
@@ -51,11 +51,11 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
   try {
     res = await fetch(path, {
       method,
-      headers: method === 'GET' ? {} : { 'Content-Type': 'application/json', 'X-Strikebench': '1' },
+      headers: method === 'GET' ? {} : { 'Content-Type': 'application/json', 'X-Strikecraft': '1' },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch (e) {
-    throw new ApiError(`Cannot reach the Strikebench server (${(e as Error).message}). Is it still running?`, 0);
+    throw new ApiError(`Cannot reach the Strikecraft server (${(e as Error).message}). Is it still running?`, 0);
   }
   const text = await res.text();
   let json: unknown;
@@ -94,7 +94,7 @@ export const httpApi: Api = {
 
 /** The service itself, in the browser, on simulated data. Loaded only for the hosted demo build. */
 async function demoApi(): Promise<Api> {
-  const { createService, memoryStore, demoSource, defaultDemoSnapshots } = await import('@strikebench/data');
+  const { createService, memoryStore, demoSource, defaultDemoSnapshots } = await import('@strikecraft/data');
   const demo = demoSource(defaultDemoSnapshots());
   const svc = await createService({
     mode: 'demo',

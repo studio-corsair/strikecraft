@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Fresh-machine install test for the published package: from a packed tarball, in an empty
-// directory with an empty HOME and an empty npm cache, `npx strikebench` must start, serve the
+// directory with an empty HOME and an empty npm cache, `npx strikecraft` must start, serve the
 // UI, answer the API, and render in a browser. Nothing from this repo is on its path.
-//   node scripts/fresh-install-test.mjs [path/to/strikebench-x.y.z.tgz]
+//   node scripts/fresh-install-test.mjs [path/to/strikecraft-x.y.z.tgz]
 import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -10,7 +10,7 @@ import path from 'node:path';
 import { chromium } from '@playwright/test';
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-const pkgDir = path.join(root, 'packages/strikebench');
+const pkgDir = path.join(root, 'packages/strikecraft');
 let tgz = process.argv[2];
 if (!tgz) {
   execFileSync('node', [path.join(root, 'scripts/build-package.mjs')], { stdio: 'inherit' });
@@ -19,7 +19,7 @@ if (!tgz) {
 }
 tgz = path.resolve(tgz);
 
-const work = fs.mkdtempSync(path.join(os.tmpdir(), 'strikebench-fresh-'));
+const work = fs.mkdtempSync(path.join(os.tmpdir(), 'strikecraft-fresh-'));
 const home = path.join(work, 'home');
 const cwd = path.join(work, 'empty-dir');
 fs.mkdirSync(home);
@@ -37,14 +37,14 @@ let failed = false;
 try {
   say(`tarball   ${path.basename(tgz)} (${(fs.statSync(tgz).size / 1024).toFixed(0)} kB)`);
   say(`clean dir ${cwd} (HOME and npm cache are empty temp dirs)`);
-  const version = execFileSync('npx', ['--yes', `--package=${tgz}`, 'strikebench', '--version'], { cwd, env })
+  const version = execFileSync('npx', ['--yes', `--package=${tgz}`, 'strikecraft', '--version'], { cwd, env })
     .toString()
     .trim();
-  say(`npx strikebench --version → ${version}`);
-  const help = execFileSync('npx', ['--yes', `--package=${tgz}`, 'strikebench', '--help'], { cwd, env }).toString();
+  say(`npx strikecraft --version → ${version}`);
+  const help = execFileSync('npx', ['--yes', `--package=${tgz}`, 'strikecraft', '--help'], { cwd, env }).toString();
   if (!help.includes('Keys stay on this machine')) throw new Error('--help output is missing');
 
-  server = spawn('npx', ['--yes', `--package=${tgz}`, 'strikebench', '--demo', '--no-open', '--port', '0'], {
+  server = spawn('npx', ['--yes', `--package=${tgz}`, 'strikecraft', '--demo', '--no-open', '--port', '0'], {
     cwd,
     env,
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -63,7 +63,7 @@ try {
     });
     server.on('exit', (c) => reject(new Error(`server exited with ${c}: ${log}`)));
   });
-  say(`npx strikebench --demo → ${log.trim().split('\n')[0]}`);
+  say(`npx strikecraft --demo → ${log.trim().split('\n')[0]}`);
   if (log.includes('The UI is not built')) throw new Error('the package did not find its bundled UI');
 
   const status = await (await fetch(`${base}/api/status`)).json();
@@ -90,8 +90,8 @@ try {
   if (errors.length) throw new Error(`console errors: ${errors.join(' | ')}`);
   if (!manifest.ok() || !sw.ok()) throw new Error('manifest or service worker missing');
   // Demo mode must not create a key store.
-  if (fs.existsSync(path.join(home, '.strikebench'))) throw new Error('demo mode wrote to ~/.strikebench');
-  say('demo mode left HOME untouched (no ~/.strikebench)');
+  if (fs.existsSync(path.join(home, '.strikecraft'))) throw new Error('demo mode wrote to ~/.strikecraft');
+  say('demo mode left HOME untouched (no ~/.strikecraft)');
 } catch (e) {
   failed = true;
   say(`FAIL ${e.message}`);

@@ -4,7 +4,7 @@
 import { occ, parseOcc, sessionAt } from './symbols.ts';
 import { tag } from './types.ts';
 import type { MarketDataSource, SourceInfo } from './types.ts';
-import type { RawOptionRow } from '@strikebench/core';
+import type { RawOptionRow } from '@strikecraft/core';
 
 export const CBOE: SourceInfo = { id: 'cboe', label: 'Cboe', delayMinutes: 15 };
 

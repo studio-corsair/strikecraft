@@ -89,7 +89,7 @@ try {
     type: 'debit',
     price: 0.01,
     duration: 'day',
-    tag: 'strikebench-sandbox-check',
+    tag: 'strikecraft-sandbox-check',
     legs: [
       { symbol: occ(sym, expiry, 'C', long.strike), side: 'buy_to_open', quantity: 1 },
       { symbol: occ(sym, expiry, 'C', short.strike), side: 'sell_to_open', quantity: 1 },

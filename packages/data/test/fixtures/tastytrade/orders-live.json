@@ -11,7 +11,7 @@
         "price": "0.01",
         "price-effect": "Debit",
         "time-in-force": "Day",
-        "external-identifier": "strikebench-sandbox-check",
+        "external-identifier": "strikecraft-sandbox-check",
         "received-at": "2026-11-13T18:26:52.513+00:00",
         "legs": [
           {

@@ -4,9 +4,9 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import type { SavedState, StateStore } from '@strikebench/data';
+import type { SavedState, StateStore } from '@strikecraft/data';
 
-export const defaultDataDir = () => process.env.STRIKEBENCH_HOME ?? path.join(os.homedir(), '.strikebench');
+export const defaultDataDir = () => process.env.STRIKECRAFT_HOME ?? path.join(os.homedir(), '.strikecraft');
 
 const EMPTY: SavedState = { connections: [], settings: { allowLiveOrders: false } };
 

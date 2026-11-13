@@ -241,6 +241,41 @@ describe('connections and the live-order switch', () => {
     expect(stored!.connections).toEqual([]);
   });
 
+  it('a failed save changes nothing: not the setting, not the connection, not the active broker', async () => {
+    const { fetch } = stubTradier();
+    let failSaves = false;
+    let onDisk: SavedState = { connections: [], settings: { allowLiveOrders: false } };
+    const store: StateStore = {
+      load: async () => structuredClone(onDisk),
+      save: async (s) => {
+        if (failSaves) throw new Error('ENOSPC: no space left on device');
+        onDisk = structuredClone(s);
+      },
+    };
+    const svc = await createService({
+      mode: 'local',
+      baseSources: [demo],
+      store,
+      deps: { fetch },
+      engine: { now: () => demo.asOf },
+    });
+    await svc.connect('tradier', 'live', { token: 'LIVE-TOKEN' });
+    failSaves = true;
+    await expect(svc.setSettings({ allowLiveOrders: true })).rejects.toThrow('ENOSPC');
+    let st = await svc.status();
+    expect(st.settings).toEqual({ allowLiveOrders: false }); // what the user was told failed is not in effect
+    expect(st.activeBroker.liveOrdersAllowed).toBe(false);
+    await expect(svc.placeOrder(order)).rejects.toBeInstanceOf(LiveTradingDisabledError);
+    await expect(svc.disconnect('tradier')).rejects.toThrow('ENOSPC');
+    st = await svc.status();
+    expect(st.connections.map((c) => c.id)).toEqual(['tradier']); // still connected, as on disk
+    // A later successful change must not smuggle in the earlier failed one.
+    failSaves = false;
+    await svc.setSettings({ allowLiveOrders: false });
+    expect(onDisk.settings.allowLiveOrders).toBe(false);
+    expect((await svc.status()).activeBroker.liveOrdersAllowed).toBe(false);
+  });
+
   it('never sends an order to a live account unless the setting is switched on', async () => {
     const { fetch, seen } = stubTradier();
     const svc = await createService({

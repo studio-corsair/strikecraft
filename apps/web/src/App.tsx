@@ -17,10 +17,10 @@ export function App() {
         ) : (
           <div className="app boot">
             {bootError ? (
-              <ErrorNote source="Strikebench" message={bootError} />
+              <ErrorNote source="Strikecraft" message={bootError} />
             ) : (
               <p id="boot" aria-busy="true">
-                Starting Strikebench
+                Starting Strikecraft
               </p>
             )}
           </div>
@@ -79,7 +79,7 @@ function TopBar() {
     <header className="topbar">
       <h1 className="brand">
         <img src="/icon.svg" alt="" width={24} height={24} />
-        Strikebench
+        Strikecraft
       </h1>
       <form className="symbol-form" onSubmit={submit} role="search" aria-label="Symbol">
         <label className="sr-only" htmlFor="symbol">

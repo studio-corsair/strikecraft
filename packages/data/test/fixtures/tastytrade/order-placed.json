@@ -14,7 +14,7 @@
       "status": "Received",
       "cancellable": true,
       "editable": true,
-      "external-identifier": "strikebench-sandbox-check",
+      "external-identifier": "strikecraft-sandbox-check",
       "received-at": "2026-11-13T18:26:52.513+00:00",
       "legs": [
         {

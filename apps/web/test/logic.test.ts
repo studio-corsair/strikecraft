@@ -17,7 +17,7 @@ import { buildStrategy, nearestIndex, wingStep, addLeg, legKey, STRATEGIES } fro
 import { buildOrder, netMid, lotsOf, priceLabel, occSymbol, contractWords, sideWords } from '../src/ticket.ts';
 import { ticks } from '../src/components/RiskChart.tsx';
 import { chartRange, shortDate } from '../src/screens/Analyze.tsx';
-import { occ } from '@strikebench/data';
+import { occ } from '@strikecraft/data';
 
 describe('formatting', () => {
   it('formats money, including negatives and missing values', () => {

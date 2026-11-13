@@ -3,8 +3,8 @@
 // builds its own engine over the full source ladder (see ../engine.ts, ../ladder.ts).
 import fs from 'node:fs';
 import type { Json } from './http.ts';
-import { firstExpiry } from '@strikebench/core';
-import type { Leg } from '@strikebench/core';
+import { firstExpiry } from '@strikecraft/core';
+import type { Leg } from '@strikecraft/core';
 import { createEngine } from '../engine.ts';
 import type { MarketState } from '../engine.ts';
 import { yahooSource } from './source.ts';
