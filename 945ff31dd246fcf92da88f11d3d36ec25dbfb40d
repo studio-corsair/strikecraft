@@ -1,0 +1,47 @@
+{
+  "schema": "trunk-push/1",
+  "verdict": "APPROVE",
+  "head": "945ff31dd246fcf92da88f11d3d36ec25dbfb40d",
+  "tree": "2ea2feda12e5037afb4c3eb09417369547a4d187",
+  "base": "6b12675dd86a6b5ae87bebf2480ab37be567e032",
+  "gate": {
+    "cmd": "npm run -s check:fast",
+    "skipped": false,
+    "exit": 0,
+    "outputSha256": "b42b15fbd35b42c593c7a3081a848690504925f288d69511e4b9a501c49134d2"
+  },
+  "review": {
+    "by": "harness gate review (claude -p, fresh context)",
+    "findings": [
+      "· [advisory low] apps/server/src/main.ts:112 Any error from fetch on an order write now gets the 'may still have reached the broker' warning, even errors raised before a byte was sent: connection refused, DNS failure, or a bad header or URL rejected locally. The user is told an order may have arrived when it certainly did not. (F33262db259)",
+      "· round 1 (full): 1 new candidate(s), 0 dropped by the verifier"
+    ],
+    "report": {
+      "promptHash": "6c9bc873141b",
+      "round": 1,
+      "mode": "full",
+      "reviewMd": null,
+      "findings": [
+        {
+          "id": "F33262db259",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "apps/server/src/main.ts",
+          "line": 112,
+          "summary": "Any error from fetch on an order write now gets the 'may still have reached the broker' warning, even errors raised before a byte was sent: connection refused, DNS failure, or a bad header or URL rejected locally. The user is told an order may have arrived when it certainly did not.",
+          "class": "over-broad-error-classification",
+          "verified": true,
+          "outcome": null
+        }
+      ]
+    }
+  },
+  "risk": {
+    "class": "normal",
+    "paths": []
+  },
+  "approval": null,
+  "at": "2026-11-13T15:16:10.694Z"
+}
