@@ -1,5 +1,5 @@
 {
-  "_provenance": "Derived from the public tastytrade OAuth2 docs (https://developer.tastytrade.com/docs/authentication/oauth2/): POST /oauth/token returns access_token (15 min). NOT recorded from a live account.",
+  "_provenance": "Derived from the public tastytrade OAuth2 docs (https://developer.tastytrade.com/docs/authentication/oauth2/): POST /oauth/token returns access_token (15 min). Live check 2026-11-13: the top-level shape and field names were confirmed against the cert sandbox (see sandbox-recording.json); this file is kept hand-built for the cases a fresh sandbox account cannot produce (several accounts, positions, fills, partial fills, Filled/Rejected states).",
   "access_token": "fixture-access-token",
   "token_type": "Bearer",
   "expires_in": 900

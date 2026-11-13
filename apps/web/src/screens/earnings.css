@@ -1,4 +1,6 @@
-/* Earnings screen: two panels on top, the reactions chart and the position below. */
+/* Earnings screen: two panels on top (one fixed height), then the reactions history and the
+   position side by side. Both variable-height panels are in the last row, so a change of symbol
+   or position never pushes another panel. */
 .earn {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -7,10 +9,6 @@
 }
 .earn-cell {
   min-width: 0;
-}
-.earn-history,
-.earn-position {
-  grid-column: 1 / -1;
 }
 .earn > .segmented {
   grid-column: 1 / -1;
@@ -99,8 +97,6 @@ table.data.earn-q th[aria-sort='descending'] button {
   .earn {
     grid-template-columns: minmax(0, 1fr);
   }
-  .earn > .segmented {
-  }
   .earn > .earn-cell {
     display: none;
   }
@@ -133,5 +129,15 @@ table.data.earn-q th[aria-sort='descending'] button {
   .earn > .earn-next > .panel,
   .earn > .earn-crush-cell > .panel {
     height: 100%;
+  }
+}
+
+/* Half-width panels below 1100px use the compact tables (date, move, gap). */
+@media (max-width: 1099px) {
+  .earn .wide-only {
+    display: none;
+  }
+  .earn .phone-only-inline {
+    display: inline;
   }
 }

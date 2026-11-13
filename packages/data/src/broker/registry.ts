@@ -5,6 +5,7 @@
 import type { Broker, BrokerCapabilities, BrokerEnv, BrokerId, FetchLike } from './types.ts';
 import { tradierBroker, TRADIER_CAPABILITIES } from './tradier.ts';
 import type { SocketLike } from './tradier.ts';
+import { tastytradeBroker, TASTYTRADE_CAPABILITIES } from './tastytrade.ts';
 
 export interface CredentialField {
   key: string;
@@ -59,17 +60,8 @@ export const BROKERS: BrokerEntry[] = [
   {
     id: 'tastytrade',
     label: 'tastytrade',
-    status: 'planned',
-    capabilities: {
-      optionOrders: true,
-      multiLeg: true,
-      realTimeOptionQuotes: 'DXLink stream',
-      realTimeQuality: 'yes',
-      paperTrading: true,
-      paperNote: 'certification sandbox',
-      signIn: 'OAuth',
-      streaming: true,
-    },
+    status: 'available',
+    capabilities: TASTYTRADE_CAPABILITIES,
     envs: ['sandbox', 'live'],
     credentials: [
       { key: 'refreshToken', label: 'OAuth refresh token', secret: true },
@@ -78,8 +70,17 @@ export const BROKERS: BrokerEntry[] = [
     credentialHelp:
       'developer.tastytrade.com → Sandbox tools: create a sandbox user, an OAuth application (read + trade scopes) and a grant.',
     docsUrl: 'https://developer.tastytrade.com',
-    plannedNote:
-      'Adapter written and contract-tested against the documented API (OAuth2, dry-run, multi-leg, DXLink); it is switched on once it passes a live check in the certification sandbox.',
+    create: (c, env, deps) =>
+      tastytradeBroker({
+        auth: {
+          refreshToken: need(c, 'refreshToken', 'tastytrade'),
+          clientSecret: need(c, 'clientSecret', 'tastytrade'),
+        },
+        env,
+        fetch: deps.fetch,
+        WebSocket: deps.WebSocket,
+        allowLiveOrders: deps.allowLiveOrders,
+      }),
   },
   {
     id: 'schwab',

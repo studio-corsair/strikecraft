@@ -1,5 +1,5 @@
 {
-  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/orders.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. NOT recorded from a live account: no cert sandbox account existed when this was written.",
+  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/orders.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. Live check 2026-11-13: the top-level shape and field names were confirmed against the cert sandbox (see sandbox-recording.json); this file is kept hand-built for the cases a fresh sandbox account cannot produce (several accounts, positions, fills, partial fills, Filled/Rejected states).",
   "error": {
     "code": "preflight_check_failure",
     "message": "Order preflight check failed",

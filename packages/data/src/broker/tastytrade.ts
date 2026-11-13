@@ -1,7 +1,11 @@
 // tastytrade adapter (REST + DXLink streaming). Sandbox = the certification environment (simulated
 // money, orders never reach a market); live = real orders.
 //
-// Verified 2026-11-13 against tastytrade's public developer docs and OpenAPI specs:
+// Verified 2026-11-13 against tastytrade's public developer docs and OpenAPI specs, then LIVE against the
+// cert sandbox (scripts/tastytrade-sandbox.ts: dry-run + place + cancel of a 2-leg vertical, DXLink quotes;
+// responses recorded in test/fixtures/tastytrade/sandbox-recording.json). Sandbox quirk: the balances object
+// reports derivative-buying-power 0.0 on a fresh $100k margin account while the dry-run's
+// buying-power-effect shows current-buying-power 1000000.0, so optionBuyingPower can read 0 there.
 //   - Auth (OAuth2 only; the legacy POST /sessions login was decommissioned 2026-02-11):
 //       https://developer.tastytrade.com/docs/authentication/oauth2/  and  /docs/get-started
 //     POST {base}/oauth/token {grant_type: refresh_token, refresh_token, client_secret, client_id?}
@@ -53,8 +57,9 @@ type Json = Record<string, any>;
 export const TASTYTRADE_HOSTS = {
   sandbox: 'api.cert.tastyworks.com',
   live: 'api.tastyworks.com',
-  // UNVERIFIED: the docs only show the placeholder wss://dxlink.example.com/realtime. The real
-  // DXLink URL comes back from GET /api-quote-tokens; it is accepted only on these domains.
+  // The docs only show the placeholder wss://dxlink.example.com/realtime. The real DXLink URL comes back
+  // from GET /api-quote-tokens (VERIFIED live: wss://tasty-demo-dxlink-md-ws.dxfeed.com/delayed, level
+  // "demo", on the cert sandbox); it is accepted only on these domains.
   dxlinkSuffixes: ['.tastyworks.com', '.tastytrade.com', '.dxfeed.com'],
 } as const;
 
@@ -116,8 +121,9 @@ export function fromTastySymbol(sym: string): string {
   return p ? occ(p.root, p.expiry, p.right, p.strike) : sym.trim().toUpperCase();
 }
 
-// UNVERIFIED (from memory of tastytrade/dxFeed): the equity-option streamer symbol is
-// ".ROOTyymmdd{C|P}strike" with the strike in plain decimal (".NVDA261218C185", ".SPY261218P412.5").
+// The equity-option streamer symbol is ".ROOTyymmdd{C|P}strike" with the strike in plain decimal
+// (".NVDA261218C185", ".SPY261218P412.5"). VERIFIED live: it matched the chain's call/put-streamer-symbol
+// on all 378 NVDA 2026-12-18 strikes (integer strikes; the .5 form is still from memory).
 // The docs say to use the `streamer-symbol` field from instrument/chain responses rather than build
 // it; the chain endpoint's call-streamer-symbol / put-streamer-symbol win wherever we have them.
 export function toStreamerSymbol(sym: string): string {
@@ -182,7 +188,8 @@ export function tastytradeOrderJson(o: OrderRequest): Json {
     body['order-type'] = 'Market';
   } else {
     body['order-type'] = 'Limit';
-    // UNVERIFIED: an "even" spread is sent as a zero-priced Limit; the docs show no example of it.
+    // An "even" spread is sent as a zero-priced Limit (price "0.00", Debit). VERIFIED live: the sandbox
+    // dry-run accepts it (ok, no errors); it was not placed.
     body.price = (o.type === 'even' ? 0 : o.price!).toFixed(2);
     body['price-effect'] =
       o.type === 'credit'
@@ -427,7 +434,7 @@ export function tastytradeBroker(opts: TastytradeOptions): TastytradeBroker {
         return {
           id: String(a['account-number']),
           type: String(a['margin-or-cash'] ?? a['account-type-name'] ?? 'unknown').toLowerCase(),
-          // UNVERIFIED: suitable-options-level is a text label, not a number; no documented mapping.
+          // VERIFIED live: suitable-options-level is a text label ("No Restrictions"), not a number, so this is null.
           optionLevel: num(a['suitable-options-level']),
           status: a['is-closed'] === true ? 'closed' : 'active',
         };
@@ -486,8 +493,8 @@ export function tastytradeBroker(opts: TastytradeOptions): TastytradeBroker {
     },
 
     async orders(accountId) {
-      // UNVERIFIED: /orders/live ("Today's Orders") is assumed to include today's terminal orders
-      // (filled / cancelled) as well as working ones; the sandbox check confirms it.
+      // VERIFIED live: /orders/live ("Today's Orders") includes today's terminal orders (status Cancelled with
+      // cancelled-at / terminal-at) as well as working ones (In Flight).
       return arr<Json>((await api('GET', `${acct(accountId)}/orders/live`)).data?.items).map(toOrder);
     },
 
@@ -525,7 +532,7 @@ export function tastytradeBroker(opts: TastytradeOptions): TastytradeBroker {
       guardLive('Cancel');
       const res = await api('DELETE', `${acct(accountId)}/orders/${encodeURIComponent(orderId)}`);
       const o = (res.data ?? {}) as Json;
-      // UNVERIFIED: the cancel response is assumed to be the order with status Cancel Requested or Cancelled.
+      // VERIFIED live: the cancel response is the order with status "Cancel Requested"; "Cancelled" follows within a second.
       return {
         id: String(o.id ?? orderId),
         ok: ['Cancel Requested', 'Cancelled', 'Removed'].includes(String(o.status)),

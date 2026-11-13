@@ -1,5 +1,5 @@
 {
-  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/balances-and-positions.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. NOT recorded from a live account: no cert sandbox account existed when this was written.",
+  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/balances-and-positions.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. Live check 2026-11-13: the sandbox account had no positions, so only the empty {data:{items:[]}} shape was confirmed; the position fields in this file remain doc-derived and UNVERIFIED live.",
   "data": {
     "items": [
       {

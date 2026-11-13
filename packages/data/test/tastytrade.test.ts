@@ -1,6 +1,7 @@
-// Contract tests for the tastytrade adapter. The fixtures in fixtures/tastytrade/ are built from
-// the documented response schemas (see each file's "_provenance"), not recorded from a live
-// account; scripts/tastytrade-sandbox.ts is the live check that replaces them once a cert account exists.
+// Contract tests for the tastytrade adapter. Two kinds of fixture in fixtures/tastytrade/: hand-built ones
+// (see each file's "_provenance"; they cover fills, positions and several accounts that a fresh sandbox
+// account cannot produce) and sandbox-recording.json, responses RECORDED from the cert sandbox by
+// scripts/tastytrade-sandbox.ts --record, replayed at the bottom of this file.
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import {
@@ -17,6 +18,7 @@ import type { SocketLike } from '../src/broker/tradier.ts';
 import { BrokerError, LiveTradingDisabledError } from '../src/broker/types.ts';
 import type { FetchLike, OrderRequest, StreamQuote } from '../src/broker/types.ts';
 import { occ, parseOcc } from '../src/symbols.ts';
+import { brokerEntry, createBroker } from '../src/broker/registry.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Json = Record<string, any>;
@@ -512,5 +514,118 @@ describe('tastytrade DXLink stream', () => {
       );
       expect(FakeSocket.all).toHaveLength(0);
     }
+  });
+});
+
+// ---- contract tests against responses RECORDED from the cert sandbox (fixtures/tastytrade/sandbox-recording.json)
+type Exchange = { method: string; url: string; body: string | null; status: number; response: string };
+const recording = (): Exchange[] =>
+  (
+    JSON.parse(fs.readFileSync(new URL('./fixtures/tastytrade/sandbox-recording.json', import.meta.url), 'utf8')) as {
+      exchanges: Exchange[];
+    }
+  ).exchanges;
+
+/** Replays the recorded exchanges: same method + path + request body, served in recorded order. */
+function replay() {
+  const queue = recording();
+  const requests: Req[] = [];
+  const fetch: FetchLike = async (url, init) => {
+    const method = init?.method ?? 'GET';
+    requests.push({ method, url, headers: init?.headers ?? {}, body: init?.body });
+    const path = new URL(url).pathname;
+    const i = queue.findIndex(
+      (x) => x.method === method && new URL(x.url).pathname === path && (x.body == null || x.body === init?.body),
+    );
+    if (i < 0) throw new Error(`nothing recorded for ${method} ${path} ${init?.body ?? ''}`);
+    const [x] = queue.splice(i, 1);
+    return { ok: x!.status >= 200 && x!.status < 300, status: x!.status, text: async () => x!.response };
+  };
+  return { fetch, requests };
+}
+const RA = '5WA00000'; // the scrubbed account number in the recording
+const VERTICAL: OrderRequest = {
+  underlying: 'NVDA',
+  type: 'debit',
+  price: 0.01,
+  duration: 'day',
+  tag: 'strikebench-sandbox-check',
+  legs: [
+    { symbol: 'NVDA261218C01930000', side: 'buy_to_open', quantity: 1 },
+    { symbol: 'NVDA261218C01940000', side: 'sell_to_open', quantity: 1 },
+  ],
+};
+
+describe('tastytrade against recorded sandbox responses', () => {
+  it('reads accounts, balances, positions and the chain as the real API returns them', async () => {
+    const b = make(replay().fetch);
+    // "suitable-options-level" is the text "No Restrictions": no numeric level, so optionLevel stays null.
+    expect(await b.accounts()).toEqual([{ id: RA, type: 'margin', optionLevel: null, status: 'active' }]);
+    expect(await b.balances(RA)).toMatchObject({ equity: 100000, cash: 100000 });
+    expect(await b.positions(RA)).toEqual([]);
+    const strikes = await b.chainStructure('NVDA', '2026-12-18');
+    expect(strikes.map((s) => s.strike)).toEqual([180, 185, 190, 195, 200, 1930, 1940]);
+    // The broker's own streamer symbols are exactly what toStreamerSymbol derives from the OCC symbol.
+    for (const s of strikes) {
+      expect(toStreamerSymbol(s.call)).toBe(s.callStreamer);
+      expect(toStreamerSymbol(s.put)).toBe(s.putStreamer);
+    }
+    expect(strikes[0]).toMatchObject({ call: 'NVDA261218C00180000', callStreamer: '.NVDA261218C180' });
+  });
+
+  it('dry-run, place, list and cancel a 2-leg vertical: statuses and error body as recorded', async () => {
+    const { fetch } = replay();
+    const b = make(fetch);
+    expect(await b.previewOrder(RA, VERTICAL)).toMatchObject({ ok: true, cost: 1, commission: 2, marginChange: 1 });
+    // An "even" spread (zero-priced Limit) is accepted by the sandbox dry-run.
+    expect(await b.previewOrder(RA, { ...VERTICAL, type: 'even', price: undefined })).toMatchObject({ ok: true });
+    const bad = await b
+      .previewOrder(RA, {
+        ...VERTICAL,
+        legs: [{ symbol: 'NVDA261218C01931000', side: 'buy_to_open', quantity: 1 }, VERTICAL.legs[1]!],
+      })
+      .catch((e: unknown) => e);
+    expect(bad).toBeInstanceOf(BrokerError);
+    expect((bad as BrokerError).message).toContain('Trading of NVDA  261218C01931000 is not supported');
+    const placed = await b.placeOrder(RA, VERTICAL);
+    expect(placed.state).toBe('pending');
+    const working = (await b.orders(RA)).find((o) => o.id === placed.id);
+    expect(working).toMatchObject({ state: 'pending', type: 'debit', price: 0.01, tag: 'strikebench-sandbox-check' });
+    expect(working!.legs.map((l) => l.side)).toEqual(['buy_to_open', 'sell_to_open']);
+    expect(await b.cancelOrder(RA, placed.id)).toMatchObject({ id: placed.id, ok: true }); // "Cancel Requested"
+    // /orders/live also lists today's terminal orders, so the cancel is observable there.
+    expect((await b.orders(RA)).find((o) => o.id === placed.id)!.state).toBe('canceled');
+  });
+
+  it('the recorded quote token points at a DXLink host the adapter accepts', () => {
+    const q = recording().find((x) => x.url.endsWith('/api-quote-tokens'))!;
+    const u = new URL(JSON.parse(q.response).data['dxlink-url']);
+    expect(u.protocol).toBe('wss:');
+    expect(TASTYTRADE_HOSTS.dxlinkSuffixes.some((s) => u.hostname.endsWith(s))).toBe(true);
+    const tok = recording().find((x) => x.url.endsWith('/oauth/token'))!;
+    expect(JSON.parse(tok.response)).toMatchObject({ token_type: 'Bearer', expires_in: 900 });
+  });
+});
+
+describe('tastytrade in the broker registry', () => {
+  const never: FetchLike = async () => {
+    throw new Error('no request expected');
+  };
+  it('is available and builds an adapter that talks only to the cert host in the sandbox env', () => {
+    expect(brokerEntry('tastytrade')).toMatchObject({ status: 'available' });
+    expect(brokerEntry('tastytrade').plannedNote).toBeUndefined();
+    const b = createBroker('tastytrade', { refreshToken: REFRESH, clientSecret: SECRET }, 'sandbox', { fetch: never });
+    expect(b.id).toBe('tastytrade');
+    expect(b.hosts).toEqual([TASTYTRADE_HOSTS.sandbox]);
+    expect(b.hosts).toEqual(['api.cert.tastyworks.com']);
+  });
+
+  it('needs both credentials, and live orders stay off unless asked for', async () => {
+    expect(() => createBroker('tastytrade', { refreshToken: REFRESH }, 'sandbox', { fetch: never })).toThrow(
+      'clientSecret',
+    );
+    const live = createBroker('tastytrade', { refreshToken: REFRESH, clientSecret: SECRET }, 'live', { fetch: never });
+    expect(live.hosts).toEqual([TASTYTRADE_HOSTS.live]);
+    await expect(live.placeOrder('5WX01234', debit)).rejects.toBeInstanceOf(LiveTradingDisabledError);
   });
 });

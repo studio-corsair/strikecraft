@@ -1,5 +1,5 @@
 {
-  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/orders.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. NOT recorded from a live account: no cert sandbox account existed when this was written.",
+  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/orders.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. Live check 2026-11-13: the order fields (id, status In Flight / Cancelled, legs, price, price-effect, external-identifier) were confirmed against the cert sandbox (see sandbox-recording.json); fills, partial fills and the Filled state remain doc-derived and UNVERIFIED live.",
   "data": {
     "items": [
       {
