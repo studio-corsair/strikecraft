@@ -114,13 +114,26 @@ test('the ticket is priced only from its own legs: removing a leg never leaves t
   await expect(page.getByLabel(/^Net debit/)).toBeVisible();
   await expect.poll(async () => Number(await price.getAttribute('placeholder'))).toBeGreaterThan(0); // priced
   const spreadMid = Number(await price.getAttribute('placeholder'));
-  // Remove the short leg: the ticket is now one long call, priced at that call's own mid.
+  // Hold the next analysis back, so the moment between "legs changed" and "new price arrived" can be seen.
+  let release!: () => void;
+  const held = new Promise<void>((r) => (release = r));
+  await page.route('**/api/analyze', async (route) => {
+    await held;
+    await route.continue();
+  });
+  // Remove the short leg: the ticket is now one long call.
   await page.getByRole('button', { name: /^Remove −1 .*185 Call from the ticket/ }).click();
   await expect(page.getByTestId('ticket-leg')).toHaveCount(1);
   await expect(page.getByLabel(/^Limit price/)).toBeVisible();
+  // While its own analysis is still out, the spread's net price is NOT offered as this call's price,
+  // and the order cannot be previewed at it.
+  expect(await price.getAttribute('placeholder')).not.toBe(spreadMid.toFixed(2));
+  expect(await price.getAttribute('placeholder')).toBe('');
+  await expect(page.getByRole('button', { name: 'Preview order' })).toBeDisabled();
+  release();
+  // Now it is priced at that call's own mid.
   const single = (bid175 + ask175) / 2;
   await expect.poll(async () => Number(await price.getAttribute('placeholder'))).toBeCloseTo(single, 1);
   expect(Math.abs(single - spreadMid)).toBeGreaterThan(0.5); // the two prices really differ
-  // While the new price was loading the old one was never offered: Preview stays disabled until priced.
   await expect(page.getByRole('button', { name: 'Preview order' })).toBeEnabled();
 });

@@ -274,6 +274,11 @@ describe('connections and the live-order switch', () => {
     await svc.setSettings({ allowLiveOrders: false });
     expect(onDisk.settings.allowLiveOrders).toBe(false);
     expect((await svc.status()).activeBroker.liveOrdersAllowed).toBe(false);
+    // The failed disconnect did not linger in memory: the connection is still there, in the
+    // running service and in what the successful save just wrote.
+    expect(onDisk.connections.map((c) => c.broker)).toEqual(['tradier']);
+    expect((await svc.status()).connections.map((c) => c.id)).toEqual(['tradier']);
+    expect((await svc.status()).activeBroker.id).toBe('tradier');
   });
 
   it('never sends an order to a live account unless the setting is switched on', async () => {

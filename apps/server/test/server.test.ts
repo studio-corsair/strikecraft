@@ -250,6 +250,12 @@ describe('a broker that stops answering', () => {
       `127.0.0.1:${port} did not answer within 0 s`,
     );
     expect(Date.now() - started).toBeLessThan(3000);
+    // An order that timed out may have been received: the error must say so instead of inviting a resend.
+    await expect(
+      fetchWithDeadline(`http://127.0.0.1:${port}/v1/accounts/X/orders`, { method: 'POST', body: 'a=1' }),
+    ).rejects.toThrow(
+      'may still have reached the broker: check your working and filled orders before sending it again',
+    );
     silent.closeAllConnections();
   });
 });

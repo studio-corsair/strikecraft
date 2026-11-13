@@ -92,7 +92,14 @@ export const makeNodeFetch =
       return { ok: res.ok, status: res.status, text: async () => text };
     } catch (e) {
       if (e instanceof Error && (e.name === 'TimeoutError' || e.name === 'AbortError'))
-        throw new Error(`${new URL(url).host} did not answer within ${Math.round(timeoutMs / 1000)} s`, { cause: e });
+        throw new Error(
+          `${new URL(url).host} did not answer within ${Math.round(timeoutMs / 1000)} s` +
+            // A write may have arrived even though no answer came back: never invite a blind resend.
+            ((init?.method ?? 'GET') === 'GET'
+              ? ''
+              : '. The request may still have reached the broker: check your working and filled orders before sending it again'),
+          { cause: e },
+        );
       throw e;
     }
   };
