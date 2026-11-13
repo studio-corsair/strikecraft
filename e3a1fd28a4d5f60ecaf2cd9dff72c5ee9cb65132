@@ -1,0 +1,262 @@
+{
+  "schema": "trunk-push/1",
+  "verdict": "APPROVE",
+  "head": "e3a1fd28a4d5f60ecaf2cd9dff72c5ee9cb65132",
+  "tree": "f6696c3a820c5cdbc107acd51397b5fe8494ba73",
+  "base": "19904937c0dea56cb6b09c2e5cb52aabace8d6ac",
+  "gate": {
+    "cmd": "npm run -s check:fast",
+    "skipped": false,
+    "exit": 0,
+    "outputSha256": "2768058b3a4580a1a96ee7dcbb85db0f80f5fccb0064f691990af4cb98e10a5c"
+  },
+  "review": {
+    "by": "harness gate review (claude -p, fresh context)",
+    "findings": [
+      "· [advisory medium] apps/server/src/store.ts:9 The rename moves the default key store from ~/.strikebench to ~/.strikecraft, and STRIKEBENCH_HOME is no longer read. Nothing migrates or falls back to the old directory, so anyone who already connected a broker starts the new version with no connections and no settings, and the old config.json full of keys stays on disk. (F6de613f3c6)",
+      "· [advisory medium] apps/server/src/main.ts:317 The new 15 s fetch deadline also covers non-idempotent POSTs like order placement. When the broker got the order but answered slowly, the request is aborted and reported as '<host> did not answer within 15 s'. That reads as if no order was sent, so the user is invited to resubmit and can end up with a duplicate live order. (Fcdc663f3a4)",
+      "· [advisory low] packages/data/test/service.test.ts:1596 The failed-disconnect part of the 'a failed save changes nothing' test passes on the old buggy code too. status().connections is built from the `connected` map, which only rebuild() updates, and the old code skipped rebuild() when the save failed. The real regression (memory dropping tradier, so the next successful save writes and rebuilds without it) is never checked: the test never looks at connections or onDisk.connections after the later successful setSettings. (F201f7432fc)",
+      "· [advisory low] e2e/trade.spec.ts:904 The 'ticket is priced only from its own legs' test cannot catch the stale-price bug it is named for. It only polls until the placeholder ends up at the single leg's mid, which the old code also reached once the new analysis arrived. The window it claims to check (the old net never offered while loading, or after a failed load) is never looked at: the final step asserts Preview is *enabled* after pricing, not disabled during loading. (Fe6feb96d70)",
+      "· [resolved: fixed] apps/server/src/server.ts:110 One bad request crashes the whole local server. The request handler is async and nothing catches its errors, so a header like `Origin: null` (sent by sandboxed iframes and file:// pages), a malformed percent-encoded path like `GET /%zz`, or a client hanging up mid-upload throws, becomes an unhandled rejection, and Node's default behaviour exits the process. (Fd4a685800f)",
+      "· [resolved: fixed] apps/server/src/server.ts:705 Two inputs reach the server unvalidated: a malformed percent-encoded path (e.g. `/%E0`) makes `decodeURIComponent` throw, and `Origin: null` makes `new URL(origin)` throw. Both throw inside the async `http.createServer` handler with nothing to catch them, so Node exits on the unhandled rejection, and any web page the user visits can kill the local server with an `<img src=\"http://127.0.0.1:4173/%E0\">` or a request from a sandboxed iframe. (Ff6025ad4b9)",
+      "· round 2 (incremental — only edits since the last round): 6 new candidate(s), 2 dropped by the verifier"
+    ],
+    "report": {
+      "promptHash": "6c9bc873141b",
+      "round": 2,
+      "mode": "incremental",
+      "reviewMd": null,
+      "findings": [
+        {
+          "id": "Fd4a685800f",
+          "round": 1,
+          "tier": "blocking",
+          "pass": "bugs",
+          "severity": "high",
+          "file": "apps/server/src/server.ts",
+          "line": 110,
+          "summary": "One bad request crashes the whole local server. The request handler is async and nothing catches its errors, so a header like `Origin: null` (sent by sandboxed iframes and file:// pages), a malformed percent-encoded path like `GET /%zz`, or a client hanging up mid-upload throws, becomes an unhandled rejection, and Node's default behaviour exits the process.",
+          "class": "uncaught-async-handler-throw",
+          "verified": false,
+          "outcome": "fixed"
+        },
+        {
+          "id": "Fe23e5362d5",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "medium",
+          "file": "apps/web/src/screens/Trade.tsx",
+          "line": 337,
+          "summary": "The ticket's net mid can be computed from out-of-date prices. useLoad keeps the previous analysis on screen while a new one loads, and keeps it for good if the new one fails, so the price list from the old legs gets matched by position to the new legs. After removing a leg, for example, the remaining leg is priced with the removed leg's mark. That wrong net then sets the default limit price and decides whether buildOrder sends the order as a debit or a credit.",
+          "class": "stale-async-state-mismatch",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F115be7b2f9",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "medium",
+          "file": "apps/web/src/screens/Trade.tsx",
+          "line": 696,
+          "summary": "Partly filled orders can't be cancelled. The Cancel button is enabled only for 'open' and 'pending' orders, but the Tradier and tastytrade adapters report a partly filled working order as 'partially_filled', so the user cannot cancel the unfilled rest.",
+          "class": "incomplete-state-condition",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F8163ee6f22",
+          "round": 1,
+          "tier": "dropped",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "packages/data/src/service.ts",
+          "line": 323,
+          "summary": "Order sorting can come out inconsistent. When two orders have the same createdAt, the tie-break `Number(y.id) - Number(x.id)` returns NaN for any non-numeric order id, which gives Array.sort an invalid comparator.",
+          "class": "nan-comparator",
+          "verified": false,
+          "outcome": null
+        },
+        {
+          "id": "F00f23033d8",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "medium",
+          "file": "apps/server/src/main.ts",
+          "line": 79,
+          "summary": "No broker HTTP call has a timeout. A broker that stops responding makes every /api request using it hang forever. For tastytrade a stalled token refresh is worse: the shared `refreshing` promise never settles, so every later call waits on it until the process restarts.",
+          "class": "missing-timeout",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F148304575e",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "medium",
+          "file": "packages/data/src/service.ts",
+          "line": 366,
+          "summary": "The in-memory `saved` state is changed before `store.save` runs, and `rebuild()` only runs after a successful save. If the save fails (disk full, EACCES), the request returns an error but memory now disagrees with disk. Status then reports allowLiveOrders or the new connection as in effect, and the next successful connect, disconnect or setSettings rebuilds the brokers with a setting the user was told had failed.",
+          "class": "state-mutated-before-persist",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F6ff85b02a5",
+          "round": 1,
+          "tier": "dropped",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "apps/server/src/app.ts",
+          "line": 96,
+          "summary": "Every error that is not one of the known types is returned as 422 \"request refused\". That includes network failures reaching the broker (fetch TypeError), config-file write errors and internal bugs, so clients see a validation-style error for an upstream or server fault.",
+          "class": "misreported-error-status",
+          "verified": false,
+          "outcome": null
+        },
+        {
+          "id": "Fa383c57f5e",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "apps/server/src/server.ts",
+          "line": 98,
+          "summary": "The static file stream is piped with no error handler. If a read fails (the file is removed or replaced between existsSync and the read during a rebuild), the stream emits an unhandled 'error' that crashes the process.",
+          "class": "unhandled-stream-error",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F39e1ad48cf",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "apps/web/test/earnings.test.tsx",
+          "line": 25,
+          "summary": "The 'does not mutate its input' test can never fail. Sorting the fixture ascending by movePct puts the 2024-02-01 row first anyway, so rows[0].date would still be '2024-02-01' even if sortQuarters sorted the array in place.",
+          "class": "vacuous-assertion",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "Fa12ef6a29d",
+          "round": 1,
+          "tier": "dropped",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "packages/data/test/tastytrade.test.ts",
+          "line": 604,
+          "summary": "The test says the recorded DXLink URL is one 'the adapter accepts', but it re-implements the suffix check inline instead of running the URL through the adapter's stream(). A change to the real guard at tastytrade.ts:581 (for example a protocol or host rule) would not make this test fail.",
+          "class": "test-reimplements-logic",
+          "verified": false,
+          "outcome": null
+        },
+        {
+          "id": "Ff6025ad4b9",
+          "round": 1,
+          "tier": "blocking",
+          "pass": "security",
+          "severity": "high",
+          "file": "apps/server/src/server.ts",
+          "line": 705,
+          "summary": "Two inputs reach the server unvalidated: a malformed percent-encoded path (e.g. `/%E0`) makes `decodeURIComponent` throw, and `Origin: null` makes `new URL(origin)` throw. Both throw inside the async `http.createServer` handler with nothing to catch them, so Node exits on the unhandled rejection, and any web page the user visits can kill the local server with an `<img src=\"http://127.0.0.1:4173/%E0\">` or a request from a sandboxed iframe.",
+          "class": "unhandled-throw-on-untrusted-input",
+          "verified": false,
+          "outcome": "fixed"
+        },
+        {
+          "id": "F6de613f3c6",
+          "round": 2,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "medium",
+          "file": "apps/server/src/store.ts",
+          "line": 9,
+          "summary": "The rename moves the default key store from ~/.strikebench to ~/.strikecraft, and STRIKEBENCH_HOME is no longer read. Nothing migrates or falls back to the old directory, so anyone who already connected a broker starts the new version with no connections and no settings, and the old config.json full of keys stays on disk.",
+          "class": "unmigrated-persisted-path",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F0ce1c7104f",
+          "round": 2,
+          "tier": "dropped",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "apps/server/src/main.ts",
+          "line": 317,
+          "summary": "The timeout error rounds the deadline to whole seconds, so any timeout under 500 ms is reported as 'did not answer within 0 s'. The new test asserts that wrong text instead of catching it.",
+          "class": "rounding-in-error-message",
+          "verified": false,
+          "outcome": null
+        },
+        {
+          "id": "Fcdc663f3a4",
+          "round": 2,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "medium",
+          "file": "apps/server/src/main.ts",
+          "line": 317,
+          "summary": "The new 15 s fetch deadline also covers non-idempotent POSTs like order placement. When the broker got the order but answered slowly, the request is aborted and reported as '<host> did not answer within 15 s'. That reads as if no order was sent, so the user is invited to resubmit and can end up with a duplicate live order.",
+          "class": "timeout-on-non-idempotent-write",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F201f7432fc",
+          "round": 2,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "packages/data/test/service.test.ts",
+          "line": 1596,
+          "summary": "The failed-disconnect part of the 'a failed save changes nothing' test passes on the old buggy code too. status().connections is built from the `connected` map, which only rebuild() updates, and the old code skipped rebuild() when the save failed. The real regression (memory dropping tradier, so the next successful save writes and rebuilds without it) is never checked: the test never looks at connections or onDisk.connections after the later successful setSettings.",
+          "class": "assertion-reads-unaffected-state",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "Fe6feb96d70",
+          "round": 2,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "e2e/trade.spec.ts",
+          "line": 904,
+          "summary": "The 'ticket is priced only from its own legs' test cannot catch the stale-price bug it is named for. It only polls until the placeholder ends up at the single leg's mid, which the old code also reached once the new analysis arrived. The window it claims to check (the old net never offered while loading, or after a failed load) is never looked at: the final step asserts Preview is *enabled* after pricing, not disabled during loading.",
+          "class": "test-claims-unchecked-behaviour",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F4ec03bde8a",
+          "round": 2,
+          "tier": "dropped",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "apps/web/src/screens/Trade.tsx",
+          "line": 701,
+          "summary": "The change that makes partly filled orders cancellable has no test. No test renders a 'partially_filled' order and checks that its Cancel button is enabled, so going back to the old open/pending check would pass every test.",
+          "class": "untested-behaviour-change",
+          "verified": false,
+          "outcome": null
+        }
+      ]
+    }
+  },
+  "risk": {
+    "class": "sensitive",
+    "paths": [
+      ".github/workflows/ci.yml"
+    ]
+  },
+  "approval": null,
+  "at": "2026-11-13T14:20:07.439Z"
+}
