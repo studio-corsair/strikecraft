@@ -1,0 +1,72 @@
+{
+  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/instruments.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. NOT recorded from a live account: no cert sandbox account existed when this was written. The streamer-symbol values are illustrative (docs do not show the equity-option format).",
+  "data": {
+    "items": [
+      {
+        "underlying-symbol": "NVDA",
+        "root-symbol": "NVDA",
+        "option-chain-type": "Standard",
+        "shares-per-contract": 100,
+        "expirations": [
+          {
+            "expiration-type": "Regular",
+            "expiration-date": "2027-01-15",
+            "days-to-expiration": 63,
+            "settlement-type": "PM",
+            "strikes": [
+              {
+                "strike-price": "185.0",
+                "call": "NVDA  270115C00185000",
+                "call-streamer-symbol": ".NVDA270115C185",
+                "put": "NVDA  270115P00185000",
+                "put-streamer-symbol": ".NVDA270115P185"
+              }
+            ]
+          },
+          {
+            "expiration-type": "Regular",
+            "expiration-date": "2026-12-18",
+            "days-to-expiration": 35,
+            "settlement-type": "PM",
+            "strikes": [
+              {
+                "strike-price": "200.0",
+                "call": "NVDA  261218C00200000",
+                "call-streamer-symbol": ".NVDA261218C200",
+                "put": "NVDA  261218P00200000",
+                "put-streamer-symbol": ".NVDA261218P200"
+              },
+              {
+                "strike-price": "185.0",
+                "call": "NVDA  261218C00185000",
+                "call-streamer-symbol": ".NVDA261218C185",
+                "put": "NVDA  261218P00185000",
+                "put-streamer-symbol": ".NVDA261218P185"
+              },
+              {
+                "strike-price": "187.5",
+                "call": "NVDA  261218C00187500",
+                "call-streamer-symbol": ".NVDA261218C187.5",
+                "put": "NVDA  261218P00187500",
+                "put-streamer-symbol": ".NVDA261218P187.5"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "underlying-symbol": "NVDA",
+        "root-symbol": "NVDA1",
+        "option-chain-type": "Non-standard",
+        "shares-per-contract": 100,
+        "expirations": [
+          {
+            "expiration-date": "2026-12-18",
+            "strikes": []
+          }
+        ]
+      }
+    ]
+  },
+  "context": "/option-chains/NVDA/nested"
+}

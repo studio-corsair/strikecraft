@@ -1,0 +1,35 @@
+{
+  "name": "strikebench",
+  "version": "0.1.0",
+  "description": "Free, open-source options workstation: risk profiles, probabilities and trading on your own broker API key. Runs locally.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "strikebench": "dist/cli.mjs"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "options",
+    "trading",
+    "options-analysis",
+    "risk-profile",
+    "black-scholes",
+    "greeks",
+    "tradier",
+    "broker",
+    "pwa"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/studio-corsair/strikebench.git"
+  },
+  "homepage": "https://github.com/studio-corsair/strikebench#readme",
+  "bugs": "https://github.com/studio-corsair/strikebench/issues"
+}

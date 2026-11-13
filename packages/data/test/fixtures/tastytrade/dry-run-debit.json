@@ -1,0 +1,68 @@
+{
+  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/orders.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. NOT recorded from a live account: no cert sandbox account existed when this was written.",
+  "data": {
+    "order": {
+      "account-number": "5WX01234",
+      "time-in-force": "Day",
+      "order-type": "Limit",
+      "size": "1",
+      "underlying-symbol": "NVDA",
+      "underlying-instrument-type": "Equity Option",
+      "price": "1.20",
+      "price-effect": "Debit",
+      "status": "Received",
+      "legs": [
+        {
+          "instrument-type": "Equity Option",
+          "symbol": "NVDA  261218C00185000",
+          "quantity": "1",
+          "remaining-quantity": "1",
+          "action": "Buy to Open",
+          "fills": []
+        },
+        {
+          "instrument-type": "Equity Option",
+          "symbol": "NVDA  261218C00200000",
+          "quantity": "1",
+          "remaining-quantity": "1",
+          "action": "Sell to Open",
+          "fills": []
+        }
+      ]
+    },
+    "warnings": [
+      {
+        "code": "tif_next_valid_sesssion",
+        "message": "Your order will begin working during next valid session."
+      }
+    ],
+    "buying-power-effect": {
+      "change-in-margin-requirement": "300.0",
+      "change-in-margin-requirement-effect": "Debit",
+      "change-in-buying-power": "122.302",
+      "change-in-buying-power-effect": "Debit",
+      "current-buying-power": "8995981.2613",
+      "current-buying-power-effect": "Credit",
+      "new-buying-power": "8995858.9593",
+      "new-buying-power-effect": "Credit",
+      "isolated-order-margin-requirement": "300.0",
+      "isolated-order-margin-requirement-effect": "Debit",
+      "is-spread": true,
+      "impact": "122.302",
+      "effect": "Debit"
+    },
+    "fee-calculation": {
+      "regulatory-fees": "0.102",
+      "regulatory-fees-effect": "Debit",
+      "clearing-fees": "0.2",
+      "clearing-fees-effect": "Debit",
+      "commission": "2.0",
+      "commission-effect": "Debit",
+      "proprietary-index-option-fees": "0.0",
+      "proprietary-index-option-fees-effect": "Debit",
+      "total-fees": "2.302",
+      "total-fees-effect": "Debit"
+    }
+  },
+  "context": "/accounts/5WX01234/orders/dry-run"
+}

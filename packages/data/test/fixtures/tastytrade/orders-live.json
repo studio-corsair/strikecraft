@@ -1,0 +1,118 @@
+{
+  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/orders.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. NOT recorded from a live account: no cert sandbox account existed when this was written.",
+  "data": {
+    "items": [
+      {
+        "id": 771043,
+        "account-number": "5WX01234",
+        "status": "Live",
+        "underlying-symbol": "NVDA",
+        "order-type": "Limit",
+        "price": "0.01",
+        "price-effect": "Debit",
+        "time-in-force": "Day",
+        "external-identifier": "strikebench-sandbox-check",
+        "received-at": "2026-11-13T18:26:52.513+00:00",
+        "legs": [
+          {
+            "instrument-type": "Equity Option",
+            "symbol": "NVDA  261218C00185000",
+            "quantity": "1",
+            "remaining-quantity": "1",
+            "action": "Buy to Open",
+            "fills": []
+          },
+          {
+            "instrument-type": "Equity Option",
+            "symbol": "NVDA  261218C00200000",
+            "quantity": "1",
+            "remaining-quantity": "1",
+            "action": "Sell to Open",
+            "fills": []
+          }
+        ]
+      },
+      {
+        "id": 771044,
+        "status": "Filled",
+        "underlying-symbol": "NVDA",
+        "order-type": "Limit",
+        "price": "1.20",
+        "price-effect": "Credit",
+        "time-in-force": "GTC",
+        "received-at": "2026-11-13T15:00:00.000+00:00",
+        "legs": [
+          {
+            "instrument-type": "Equity Option",
+            "symbol": "NVDA  261218C00185000",
+            "quantity": "2",
+            "remaining-quantity": "0",
+            "action": "Sell to Close",
+            "fills": [
+              {
+                "fill-id": "f1",
+                "fill-price": "4.00",
+                "quantity": "2"
+              }
+            ]
+          },
+          {
+            "instrument-type": "Equity Option",
+            "symbol": "NVDA  261218C00200000",
+            "quantity": "2",
+            "remaining-quantity": "0",
+            "action": "Buy to Close",
+            "fills": [
+              {
+                "fill-id": "f2",
+                "fill-price": "2.80",
+                "quantity": "2"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 771045,
+        "status": "Cancelled",
+        "underlying-symbol": "NVDA",
+        "order-type": "Market",
+        "time-in-force": "Day",
+        "legs": [
+          {
+            "instrument-type": "Equity",
+            "symbol": "NVDA",
+            "quantity": "10",
+            "action": "Buy",
+            "fills": []
+          }
+        ]
+      },
+      {
+        "id": 771046,
+        "status": "Live",
+        "underlying-symbol": "NVDA",
+        "order-type": "Limit",
+        "price": "150.0",
+        "price-effect": "Debit",
+        "time-in-force": "Day",
+        "legs": [
+          {
+            "instrument-type": "Equity",
+            "symbol": "NVDA",
+            "quantity": "10",
+            "action": "Buy",
+            "fills": [
+              {
+                "fill-id": "f3",
+                "fill-price": "150.0",
+                "quantity": "4"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "context": "/accounts/5WX01234/orders/live"
+}

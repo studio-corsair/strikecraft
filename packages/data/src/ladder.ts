@@ -61,7 +61,7 @@ export function createLadder(sources: MarketDataSource[], opts: LadderOptions = 
     lastOk: null as number | null,
     lastError: null as string | null,
     lastErrorAt: null as number | null,
-    failedAt: new Map<MarketDataMethod, number>(),
+    failedAt: new Map<string, number>(),
   }));
   const served: Partial<Record<MarketDataMethod, SourceId>> = {};
 
@@ -73,7 +73,10 @@ export function createLadder(sources: MarketDataSource[], opts: LadderOptions = 
     const candidates = sources.map((s, i) => ({ s, i })).filter(({ s }) => typeof s[method] === 'function');
     if (!candidates.length) throw new Error(`no market-data source provides ${method}`);
     // Sources in cooldown go last rather than being skipped, so a ladder of one still answers.
-    const ready = candidates.filter(({ i }) => now() - (state[i]!.failedAt.get(method) ?? -Infinity) >= cooldownMs);
+    // The cooldown is per exact request (method + arguments): a rung that rejects one symbol or
+    // expiry it does not carry must not be demoted for requests it can serve.
+    const key = `${method}:${args.map((x) => String(x ?? '').toUpperCase()).join('|')}`;
+    const ready = candidates.filter(({ i }) => now() - (state[i]!.failedAt.get(key) ?? -Infinity) >= cooldownMs);
     const cooling = candidates.filter((c) => !ready.includes(c));
     for (const { s, i } of [...ready, ...cooling]) {
       const st = state[i]!;
@@ -82,14 +85,14 @@ export function createLadder(sources: MarketDataSource[], opts: LadderOptions = 
         const out = await fn.apply(s, args);
         st.lastOk = now();
         st.lastError = null;
-        st.failedAt.delete(method);
+        st.failedAt.delete(key);
         served[method] = s.id;
         return out as Awaited<ReturnType<MarketDataMethods[M]>>;
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         st.lastError = `${method}: ${msg}`;
         st.lastErrorAt = now();
-        st.failedAt.set(method, now());
+        st.failedAt.set(key, now());
         errors.push(`${s.label}: ${msg}`);
       }
     }
@@ -119,7 +122,13 @@ export function createLadder(sources: MarketDataSource[], opts: LadderOptions = 
           delayMinutes: s.delayMinutes,
           rank: i + 1,
           serves: METHODS.filter((m) => typeof s[m] === 'function'),
-          state: failedLast ? 'error' : st.lastOk == null ? 'idle' : s.delayMinutes > 0 ? 'delayed' : 'live',
+          state: failedLast
+            ? 'error'
+            : st.lastOk == null
+              ? 'idle'
+              : s.delayMinutes > 0 || s.id === 'demo'
+                ? 'delayed'
+                : 'live',
           lastOk: st.lastOk,
           lastError: failedLast ? st.lastError : null,
           lastErrorAt: st.lastErrorAt,

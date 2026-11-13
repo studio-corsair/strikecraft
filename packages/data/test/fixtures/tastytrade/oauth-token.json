@@ -1,0 +1,6 @@
+{
+  "_provenance": "Derived from the public tastytrade OAuth2 docs (https://developer.tastytrade.com/docs/authentication/oauth2/): POST /oauth/token returns access_token (15 min). NOT recorded from a live account.",
+  "access_token": "fixture-access-token",
+  "token_type": "Bearer",
+  "expires_in": 900
+}

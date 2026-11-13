@@ -1,9 +1,9 @@
 // Cboe public delayed quotes (15 minutes) as a reference source: quote, expirations and chains.
 // It is the last rung of the ladder; nothing is built on it beyond a fallback. The fetch function
 // is injected so the adapter itself has no Node dependency and tests run on recorded fixtures.
-import { occ, parseOcc } from './symbols.ts';
+import { occ, parseOcc, sessionAt } from './symbols.ts';
 import { tag } from './types.ts';
-import type { MarketDataSource, SourceInfo, Session } from './types.ts';
+import type { MarketDataSource, SourceInfo } from './types.ts';
 import type { RawOptionRow } from '@strikebench/core';
 
 export const CBOE: SourceInfo = { id: 'cboe', label: 'Cboe', delayMinutes: 15 };
@@ -50,23 +50,6 @@ export function easternToEpochMs(s: string): number {
   const hourUtc = new Date(asUtc).getUTCHours();
   const offset = (hourUtc - hourNy + 24) % 24;
   return asUtc + offset * 3600e3;
-}
-
-function sessionAt(ms: number): Session {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York',
-    weekday: 'short',
-    hour: 'numeric',
-    minute: 'numeric',
-    hour12: false,
-  }).formatToParts(new Date(ms));
-  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? '';
-  if (['Sat', 'Sun'].includes(get('weekday'))) return 'closed';
-  const mins = (Number(get('hour')) % 24) * 60 + Number(get('minute'));
-  if (mins >= 570 && mins < 960) return 'regular';
-  if (mins >= 240 && mins < 570) return 'pre';
-  if (mins >= 960 && mins < 1200) return 'post';
-  return 'closed';
 }
 
 export function cboeSource(

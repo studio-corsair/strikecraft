@@ -1,0 +1,247 @@
+/* Trade screen */
+.trade {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+  align-items: start;
+}
+.tr-col {
+  min-width: 0;
+  display: grid;
+  gap: var(--gap);
+}
+.tr-col-chain {
+  grid-row: 1 / span 2;
+}
+.expiry-select {
+  display: none;
+  margin-bottom: 10px;
+}
+.expiry-chips {
+  margin-bottom: 12px;
+}
+
+/* chain table */
+table.chain th,
+table.chain td {
+  text-align: right;
+}
+table.chain th:first-child,
+table.chain td:first-child {
+  text-align: right;
+}
+table.chain .strike {
+  text-align: center;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--panel-2);
+  border-top: 1px solid var(--line);
+  padding: 4px 10px;
+}
+table.chain td.q {
+  padding: 4px;
+}
+.qbtn {
+  display: block;
+  width: 100%;
+  min-width: 52px;
+  min-height: var(--tap);
+  padding: 0 6px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+  text-align: right;
+}
+.qbtn:hover {
+  border-color: var(--accent);
+}
+.qbtn[aria-pressed='true'] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.qbtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.qbtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+table.chain tr.atm th.strike {
+  color: var(--accent);
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+.side-word {
+  color: var(--muted);
+}
+
+/* ticket */
+.ticket-legs {
+  list-style: none;
+  margin: 12px 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.ticket-legs li {
+  display: grid;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.ticket-leg-name {
+  font-weight: 600;
+}
+.ticket-leg-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.ticket-leg-controls .qty {
+  width: 84px;
+}
+.ticket-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--tap);
+  margin-top: 8px;
+  cursor: pointer;
+}
+.check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+.preview {
+  margin-top: 6px;
+}
+.preview .banner,
+.preview .alert {
+  margin-top: 10px;
+}
+.btn.send {
+  width: 100%;
+  margin-top: 12px;
+}
+.sent {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(62, 207, 110, 0.5);
+  background: var(--gain-soft);
+  border-radius: 8px;
+}
+.tr-ticket .alert,
+.tr-ticket .banner {
+  margin-top: 12px;
+}
+
+/* orders */
+.orders {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.orders li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 12px;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.order-main {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+.order-state {
+  font-family: var(--mono);
+  text-transform: capitalize;
+}
+.state-filled {
+  color: var(--gain);
+}
+.state-open,
+.state-pending,
+.state-partially_filled {
+  color: var(--warn);
+}
+.state-rejected {
+  color: var(--loss);
+}
+.state-canceled,
+.state-expired {
+  color: var(--muted);
+}
+.analyze-pos {
+  width: 100%;
+  margin-top: 12px;
+}
+
+@media (max-width: 1099px) {
+  table.chain .wide {
+    display: none;
+  }
+}
+@media (max-width: 899px) {
+  .trade {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tr-col-chain {
+    grid-row: auto;
+  }
+}
+@media (max-width: 719px) {
+  .trade > .tr-col {
+    display: none;
+  }
+  .trade[data-section='chain'] > .tr-col-chain,
+  .trade[data-section='ticket'] > .tr-col-ticket,
+  .trade[data-section='orders'] > .tr-col-orders {
+    display: grid;
+  }
+  .expiry-select {
+    display: grid;
+  }
+  .expiry-chips {
+    display: none;
+  }
+  .tr-chain {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  table.chain th {
+    padding: 8px 2px;
+    white-space: normal;
+  }
+  table.chain .strike {
+    padding: 4px 4px;
+  }
+  .side-word {
+    display: block;
+  }
+}
+table.chain tbody .strike {
+  vertical-align: middle;
+}
+.chain-summary {
+  margin-top: 12px;
+  max-width: 360px;
+}
+.chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

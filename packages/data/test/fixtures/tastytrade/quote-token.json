@@ -1,0 +1,11 @@
+{
+  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/accounts-and-customers.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. NOT recorded from a live account: no cert sandbox account existed when this was written. The dxlink-url host is illustrative (docs show only a placeholder).",
+  "data": {
+    "token": "fixture-quote-token",
+    "dxlink-url": "wss://tasty-openapi-ws.dxfeed.com/realtime",
+    "level": "api",
+    "expires-at": "2026-11-14T18:00:00.000Z",
+    "issued-at": "2026-11-13T18:00:00.000Z"
+  },
+  "context": "/api-quote-tokens"
+}

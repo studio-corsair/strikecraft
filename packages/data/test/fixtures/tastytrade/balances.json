@@ -1,0 +1,15 @@
+{
+  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/balances-and-positions.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. NOT recorded from a live account: no cert sandbox account existed when this was written.",
+  "data": {
+    "account-number": "5WX01234",
+    "cash-balance": "10000.0",
+    "net-liquidating-value": "10450.25",
+    "equity-buying-power": "20000.0",
+    "derivative-buying-power": "9000.5",
+    "day-trading-buying-power": "0.0",
+    "maintenance-requirement": "0.0",
+    "cash-available-to-withdraw": "10000.0",
+    "currency": "USD"
+  },
+  "context": "/accounts/5WX01234/balances"
+}

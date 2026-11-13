@@ -27,16 +27,22 @@ export interface Market {
 }
 
 /** Expiry instant: 16:00 America/New_York on the expiry date (handles DST). @param d YYYY-MM-DD */
+const NY_HOUR = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: false });
+const expiryCache = new Map<string, number>();
+
 export function expiryMs(d: string): number {
+  // Called for every leg at every price point of every curve, so the answer is cached per date:
+  // building a date formatter each time made one analysis take over a second.
+  const hit = expiryCache.get(d);
+  if (hit !== undefined) return hit;
   // 16:00 ET = 20:00 UTC (EDT) or 21:00 UTC (EST). Probe the offset on that date.
   const noonUtc = new Date(`${d}T12:00:00Z`);
-  const etHour = +new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/New_York',
-    hour: 'numeric',
-    hour12: false,
-  }).format(noonUtc);
+  const etHour = +NY_HOUR.format(noonUtc);
   const offset = 12 - etHour; // 4 (EDT) or 5 (EST)
-  return Date.parse(`${d}T${String(16 + offset).padStart(2, '0')}:00:00Z`);
+  const ms = Date.parse(`${d}T${String(16 + offset).padStart(2, '0')}:00:00Z`);
+  if (expiryCache.size > 5000) expiryCache.clear();
+  expiryCache.set(d, ms);
+  return ms;
 }
 
 /** Years from `atMs` to the leg's expiry. */

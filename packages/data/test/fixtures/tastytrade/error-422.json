@@ -1,0 +1,18 @@
+{
+  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/orders.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. NOT recorded from a live account: no cert sandbox account existed when this was written.",
+  "error": {
+    "code": "preflight_check_failure",
+    "message": "Order preflight check failed",
+    "errors": [
+      {
+        "code": "cant_buy_for_credit",
+        "message": "You cannot buy for a credit.",
+        "domain": "preflight"
+      },
+      {
+        "code": "insufficient_buying_power",
+        "message": "Insufficient buying power."
+      }
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/balances-and-positions.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. NOT recorded from a live account: no cert sandbox account existed when this was written.",
+  "data": {
+    "items": [
+      {
+        "account-number": "5WX01234",
+        "symbol": "NVDA",
+        "instrument-type": "Equity",
+        "underlying-symbol": "NVDA",
+        "quantity": "100.0",
+        "quantity-direction": "Long",
+        "average-open-price": "150.25",
+        "close-price": "160.0",
+        "multiplier": 1,
+        "created-at": "2026-11-02T15:00:00.000+00:00"
+      },
+      {
+        "account-number": "5WX01234",
+        "symbol": "NVDA  261218C00185000",
+        "instrument-type": "Equity Option",
+        "underlying-symbol": "NVDA",
+        "quantity": "2.0",
+        "quantity-direction": "Short",
+        "average-open-price": "4.1",
+        "close-price": "3.9",
+        "multiplier": 100,
+        "expires-at": "2026-12-18T21:00:00.000+00:00",
+        "created-at": "2026-11-03T15:00:00.000+00:00"
+      },
+      {
+        "account-number": "5WX01234",
+        "symbol": "NVDA  261218C00200000",
+        "instrument-type": "Equity Option",
+        "underlying-symbol": "NVDA",
+        "quantity": "2.0",
+        "quantity-direction": "Long",
+        "average-open-price": "1.5",
+        "close-price": "1.4",
+        "multiplier": 100,
+        "expires-at": "2026-12-18T21:00:00.000+00:00",
+        "created-at": "2026-11-03T15:00:00.000+00:00"
+      },
+      {
+        "account-number": "5WX01234",
+        "symbol": "/ESZ6",
+        "instrument-type": "Future",
+        "underlying-symbol": "/ES",
+        "quantity": "1",
+        "quantity-direction": "Long",
+        "average-open-price": "5000",
+        "multiplier": 50
+      }
+    ]
+  },
+  "context": "/accounts/5WX01234/positions"
+}

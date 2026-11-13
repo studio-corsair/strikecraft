@@ -6,3 +6,5 @@ harness.json
 coverage/
 playwright-report/
 test-results/
+dist/
+dist-demo/

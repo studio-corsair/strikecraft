@@ -8,3 +8,9 @@ dist/
 .DS_Store
 .env*
 .strikebench/
+packages/strikebench/dist/
+packages/strikebench/LICENSE
+packages/strikebench/README.md
+docs/name-check/*.png
+dist-demo/
+test-results/

@@ -1,0 +1,17 @@
+name: Bug
+description: Something does not work
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes: { label: What happened, description: 'What you did, what you saw, what you expected' }
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes: { label: Version, description: "strikebench --version, or 'demo'" }
+  - type: input
+    id: where
+    attributes: { label: Browser and device }
+  - type: dropdown
+    id: broker
+    attributes: { label: Connected broker, options: [None / paper, Tradier sandbox, Tradier live, Other] }

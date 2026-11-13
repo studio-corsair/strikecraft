@@ -1,0 +1,29 @@
+{
+  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/accounts-and-customers.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. NOT recorded from a live account: no cert sandbox account existed when this was written.",
+  "data": {
+    "items": [
+      {
+        "account": {
+          "account-number": "5WX01234",
+          "account-type-name": "Individual",
+          "margin-or-cash": "Margin",
+          "suitable-options-level": "No Restrictions",
+          "is-closed": false,
+          "nickname": "Demo",
+          "opened-at": "2026-11-01T14:00:00.000+00:00"
+        },
+        "authority-level": "owner"
+      },
+      {
+        "account": {
+          "account-number": "5WX09999",
+          "account-type-name": "Individual",
+          "margin-or-cash": "Cash",
+          "is-closed": true
+        },
+        "authority-level": "owner"
+      }
+    ]
+  },
+  "context": "/customers/me/accounts"
+}

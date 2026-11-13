@@ -1,0 +1,15 @@
+{
+  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/orders.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. NOT recorded from a live account: no cert sandbox account existed when this was written.",
+  "data": {
+    "id": 771043,
+    "account-number": "5WX01234",
+    "status": "Cancel Requested",
+    "underlying-symbol": "NVDA",
+    "order-type": "Limit",
+    "price": "0.01",
+    "price-effect": "Debit",
+    "time-in-force": "Day",
+    "legs": []
+  },
+  "context": "/accounts/5WX01234/orders/771043"
+}

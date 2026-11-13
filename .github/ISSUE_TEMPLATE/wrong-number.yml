@@ -1,0 +1,26 @@
+name: A number looks wrong
+description: A price, greek, probability or P&L that does not match what you expect
+labels: [math]
+body:
+  - type: input
+    id: symbol
+    attributes: { label: Symbol and date }
+    validations: { required: true }
+  - type: textarea
+    id: legs
+    attributes:
+      label: Position
+      description: Every leg, e.g. "+1 C 185 2026-12-18 @4.71"
+    validations: { required: true }
+  - type: textarea
+    id: shown
+    attributes:
+      {
+        label: What Strikebench showed,
+        description: 'Which screen, which number, and the data source named in the top bar',
+      }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: What you expected, description: 'With a source or a calculation if you have one' }
+    validations: { required: true }

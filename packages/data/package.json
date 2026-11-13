@@ -5,7 +5,8 @@
   "license": "Apache-2.0",
   "description": "Market-data ladder and broker adapters behind one interface. Every quote carries its source.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./node": "./src/node.ts"
   },
   "dependencies": {
     "@strikebench/core": "*"

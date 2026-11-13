@@ -1,0 +1,51 @@
+{
+  "_provenance": "Derived from the public tastytrade OpenAPI spec and docs (https://developer.tastytrade.com/openapi/orders.json, https://developer.tastytrade.com/docs/); field names and example values follow the documented schemas. NOT recorded from a live account: no cert sandbox account existed when this was written.",
+  "data": {
+    "order": {
+      "id": 771043,
+      "account-number": "5WX01234",
+      "time-in-force": "Day",
+      "order-type": "Limit",
+      "size": "1",
+      "underlying-symbol": "NVDA",
+      "underlying-instrument-type": "Equity Option",
+      "price": "0.01",
+      "price-effect": "Debit",
+      "status": "Received",
+      "cancellable": true,
+      "editable": true,
+      "external-identifier": "strikebench-sandbox-check",
+      "received-at": "2026-11-13T18:26:52.513+00:00",
+      "legs": [
+        {
+          "instrument-type": "Equity Option",
+          "symbol": "NVDA  261218C00185000",
+          "quantity": "1",
+          "remaining-quantity": "1",
+          "action": "Buy to Open",
+          "fills": []
+        },
+        {
+          "instrument-type": "Equity Option",
+          "symbol": "NVDA  261218C00200000",
+          "quantity": "1",
+          "remaining-quantity": "1",
+          "action": "Sell to Open",
+          "fills": []
+        }
+      ]
+    },
+    "warnings": [],
+    "buying-power-effect": {
+      "change-in-margin-requirement": "300.0",
+      "change-in-margin-requirement-effect": "Debit"
+    },
+    "fee-calculation": {
+      "commission": "2.0",
+      "commission-effect": "Debit",
+      "total-fees": "2.302",
+      "total-fees-effect": "Debit"
+    }
+  },
+  "context": "/accounts/5WX01234/orders"
+}

@@ -10,7 +10,7 @@
 //     quotes are redistributed; it is labelled as simulated wherever a price is shown.
 import { bsPrice, expiryMs, YEAR_MS } from '@strikebench/core';
 import type { RawOptionRow } from '@strikebench/core';
-import { occ } from './symbols.ts';
+import { occ, sessionAt } from './symbols.ts';
 import type { DailyBar, EarningsDate, EarningsInfo, MarketData, Session, SourceInfo, SourceTag } from './types.ts';
 
 export interface LoggedContract {
@@ -308,17 +308,7 @@ export function simulateSnapshot(o: SimulateOptions): DemoSnapshot {
     volume: b.volume,
   }));
 
-  const sessionOf = (): Session => {
-    const h = +new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/New_York',
-      hour: 'numeric',
-      hour12: false,
-    }).format(new Date(asOf));
-    const min = new Date(asOf).getUTCMinutes();
-    const mins = (h % 24) * 60 + min;
-    return mins >= 570 && mins < 960 ? 'regular' : mins < 570 ? 'pre' : 'post';
-  };
-  const session = sessionOf();
+  const session = sessionAt(asOf);
 
   return {
     symbol: o.symbol,

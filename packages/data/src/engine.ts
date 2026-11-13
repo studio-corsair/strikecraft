@@ -51,6 +51,8 @@ export interface MarketState {
   now: number;
   /** Where the underlying quote came from. */
   quoteSource: SourceTag;
+  /** Sources of the option chains fetched for this state (filled as chains are read). */
+  chainsUsed: SourceTag[];
 }
 
 export interface EngineOptions {
@@ -67,8 +69,6 @@ export type Engine = ReturnType<typeof createEngine>;
 export function createEngine(md: MarketData, opts: EngineOptions = {}) {
   const clock = opts.now ?? Date.now;
   const readLogged = opts.loggedSummary ?? (() => []);
-  /** Source of the most recent chain slice per symbol:expiry. */
-  const chainSources = new Map<string, SourceTag>();
 
   /**
    * Market state. `S` = latest print (extended hours included); `Smarks` = the price option marks
@@ -96,31 +96,35 @@ export function createEngine(md: MarketData, opts: EngineOptions = {}) {
       q: dy.q,
       exDividendDate: dy.exDividendDate,
       now: clock(),
+      chainsUsed: [],
     };
   }
 
   // Chains are cached briefly: long enough to build a term structure from one consistent set of
   // slices, short enough that a long-running server keeps showing current marks.
   const chainTtlMs = opts.chainTtlMs ?? 20_000;
-  const chainCache = new Map<string, { at: number; e: Expiry }>();
+  const chainCache = new Map<string, { at: number; e: Expiry; tag: SourceTag }>();
   async function expiryChain(ms: MarketState, expiry: string): Promise<Expiry> {
     const k = `${ms.symbol}:${expiry}`;
     const hit = chainCache.get(k);
     if (!hit || clock() - hit.at > chainTtlMs) {
       const c = await md.optionChain(ms.symbol, expiry);
-      chainSources.set(k, {
-        source: c.source,
-        sourceLabel: c.sourceLabel,
-        delayed: c.delayed,
-        delayMinutes: c.delayMinutes,
-        asOf: c.asOf,
-      });
       chainCache.set(k, {
         at: clock(),
+        tag: {
+          source: c.source,
+          sourceLabel: c.sourceLabel,
+          delayed: c.delayed,
+          delayMinutes: c.delayMinutes,
+          asOf: c.asOf,
+        },
         e: buildExpiry(c.calls, c.puts, { expiry, S: ms.Smarks, r: ms.r, q: ms.q, now: ms.now, markTime: ms.markTime }),
       });
     }
-    return chainCache.get(k)!.e;
+    const entry = chainCache.get(k)!;
+    // Record the source on this call's market state, so a result names exactly the slices it used.
+    if (!ms.chainsUsed.some((t) => t.source === entry.tag.source)) ms.chainsUsed.push(entry.tag);
+    return entry.e;
   }
 
   const expirations = async (sym: string) => (await md.expirations(sym)).expirations;
@@ -243,11 +247,17 @@ export function createEngine(md: MarketData, opts: EngineOptions = {}) {
   /** Where the numbers in a result came from: the underlying quote and the option chains used. */
   const sourcesOf = (ms: MarketState) => ({
     quote: ms.quoteSource,
+    /** Every source an option chain in this result came from. */
+    get chains(): SourceTag[] {
+      return ms.chainsUsed;
+    },
+    /** The least fresh of them: what a single "chain source" label must say. */
     get chain(): SourceTag | null {
-      let latest: SourceTag | null = null;
-      for (const [k, t] of chainSources)
-        if (k.startsWith(`${ms.symbol}:`) && (!latest || t.asOf >= latest.asOf)) latest = t;
-      return latest;
+      return (
+        [...ms.chainsUsed].sort(
+          (a, b) => Number(b.delayed) - Number(a.delayed) || b.delayMinutes - a.delayMinutes,
+        )[0] ?? null
+      );
     },
   });
 
@@ -576,6 +586,5 @@ export function createEngine(md: MarketData, opts: EngineOptions = {}) {
     earnings,
     impliedVsActual,
     ivFromQuote,
-    chainSources,
   };
 }
