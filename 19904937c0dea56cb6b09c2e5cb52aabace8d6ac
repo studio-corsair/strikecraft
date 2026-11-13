@@ -1,0 +1,197 @@
+{
+  "schema": "trunk-push/1",
+  "verdict": "APPROVE",
+  "head": "19904937c0dea56cb6b09c2e5cb52aabace8d6ac",
+  "tree": "1e8ebe878b3e5da4e068d8517aaeb94bb55782c2",
+  "base": "128d93811dcbc352d15caf95da185a3167eee8cb",
+  "gate": {
+    "cmd": "npm run -s check:fast",
+    "skipped": false,
+    "exit": 0,
+    "outputSha256": "f681098cba2056e0a746de8c6f0295f01aa2a41159c38782a85b18d0dcaa6c20"
+  },
+  "review": {
+    "by": "harness gate review (claude -p, fresh context)",
+    "findings": [
+      "· [advisory medium] packages/data/src/cboe.ts:112 Outside the regular session the Cboe quote sets regularPrice to `d.close`, which is the previous day's close (it equals prev_day_close). But regularTime comes from the last regular trade, and that trade is `current_price`. So the engine prices options against a spot from one session too early and gets the wrong IVs. (Fd56e2b5450)",
+      "· [advisory low] packages/data/src/demo.ts:320 simulateSnapshot's sessionOf never returns 'closed'. Any time before 09:30 New York (including overnight from midnight) counts as 'pre', any time after 16:00 counts as 'post', and weekends are not checked, so it disagrees with cboe's sessionAt. (F36a2f67e88)",
+      "· [advisory low] packages/data/src/engine.ts:249 sourcesOf().chain reports the most recent chain source ever seen for the symbol, across every expiry and every earlier call. A result can therefore name a chain source from an older, unrelated request instead of the slices it actually used. (F1a6e89bfa8)",
+      "· [advisory medium] packages/data/src/engine.ts:882 `sources.chain` shows only one chain source: the newest-asOf entry in a symbol-wide map that is shared across calls and read lazily. When a result mixes slices from a live broker or Yahoo with a delayed Cboe fallback, the delayed Cboe source is hidden. Stale entries from earlier calls, or entries written by later ones, can also be reported. (F958cb86d27)",
+      "· [advisory medium] packages/data/src/ladder.ts:1331 Any error puts a rung into cooldown for that method across every symbol, including errors caused by the request itself (unknown symbol, missing expiry). So if a higher rung rejects one input that a lower rung accepts, the higher rung is moved behind the delayed sources for all symbols for 30 s, and live data is silently swapped for delayed data. (F5337866493)",
+      "· [advisory low] packages/data/src/demo.ts:303 The demo source tags its data `delayed: true` with `delayMinutes: 0`. The ladder derives status from delayMinutes alone, so the same rung shows as 'live' in status while its answers say they are delayed. (F0de9f49457)",
+      "· [advisory low] packages/data/src/engine.ts:109 The chain cache used to be permanent and now expires after a TTL (chainTtlMs, 20 s by default), but no test moves the clock past the TTL, so the refetch path is never run: a broken TTL check (stale marks forever, or a refetch on every call) would pass. (F7460a296f6)",
+      "· [advisory low] packages/data/src/yahoo/source.ts:18 The Yahoo adapter's source tags (source 'yahoo', delayed true, delayMinutes 15, asOf taken from lastTime) are never asserted. live.test.ts runs through yahooSource but checks no `sources` field, so a tag that wrongly says live, or a wrong asOf, would pass. (Ff0b5695508)",
+      "· round 1 (full): 12 new candidate(s), 4 dropped by the verifier"
+    ],
+    "report": {
+      "promptHash": "6c9bc873141b",
+      "round": 1,
+      "mode": "full",
+      "reviewMd": null,
+      "findings": [
+        {
+          "id": "Fd56e2b5450",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "medium",
+          "file": "packages/data/src/cboe.ts",
+          "line": 112,
+          "summary": "Outside the regular session the Cboe quote sets regularPrice to `d.close`, which is the previous day's close (it equals prev_day_close). But regularTime comes from the last regular trade, and that trade is `current_price`. So the engine prices options against a spot from one session too early and gets the wrong IVs.",
+          "class": "mismatched-price-timestamp",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F80ca989928",
+          "round": 1,
+          "tier": "dropped",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "packages/data/src/cboe.ts",
+          "line": 46,
+          "summary": "easternToEpochMs finds the New York UTC offset by reading the clock at the wall-clock time treated as UTC. That instant is 4–5 hours later than the real one, so for times in the 4–5 hours before a DST change it applies the wrong offset and is off by an hour.",
+          "class": "dst-offset-wrong-instant",
+          "verified": false,
+          "outcome": null
+        },
+        {
+          "id": "F36a2f67e88",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "packages/data/src/demo.ts",
+          "line": 320,
+          "summary": "simulateSnapshot's sessionOf never returns 'closed'. Any time before 09:30 New York (including overnight from midnight) counts as 'pre', any time after 16:00 counts as 'post', and weekends are not checked, so it disagrees with cboe's sessionAt.",
+          "class": "incomplete-session-classification",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F1a6e89bfa8",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "packages/data/src/engine.ts",
+          "line": 249,
+          "summary": "sourcesOf().chain reports the most recent chain source ever seen for the symbol, across every expiry and every earlier call. A result can therefore name a chain source from an older, unrelated request instead of the slices it actually used.",
+          "class": "stale-source-attribution",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F958cb86d27",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "medium",
+          "file": "packages/data/src/engine.ts",
+          "line": 882,
+          "summary": "`sources.chain` shows only one chain source: the newest-asOf entry in a symbol-wide map that is shared across calls and read lazily. When a result mixes slices from a live broker or Yahoo with a delayed Cboe fallback, the delayed Cboe source is hidden. Stale entries from earlier calls, or entries written by later ones, can also be reported.",
+          "class": "misreported-data-provenance",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F5337866493",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "medium",
+          "file": "packages/data/src/ladder.ts",
+          "line": 1331,
+          "summary": "Any error puts a rung into cooldown for that method across every symbol, including errors caused by the request itself (unknown symbol, missing expiry). So if a higher rung rejects one input that a lower rung accepts, the higher rung is moved behind the delayed sources for all symbols for 30 s, and live data is silently swapped for delayed data.",
+          "class": "over-broad-failure-cooldown",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "Ffee04c03a6",
+          "round": 1,
+          "tier": "dropped",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "packages/data/src/ladder.ts",
+          "line": 1317,
+          "summary": "The ladder awaits each rung with no timeout of its own. A source that hangs (an injected broker adapter or a custom fetchJson) blocks the whole call, so the fallback rungs are never tried. The header comment says the design is meant to prevent exactly this.",
+          "class": "missing-timeout",
+          "verified": false,
+          "outcome": null
+        },
+        {
+          "id": "F0de9f49457",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "packages/data/src/demo.ts",
+          "line": 303,
+          "summary": "The demo source tags its data `delayed: true` with `delayMinutes: 0`. The ladder derives status from delayMinutes alone, so the same rung shows as 'live' in status while its answers say they are delayed.",
+          "class": "contract-drift",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F7460a296f6",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "packages/data/src/engine.ts",
+          "line": 109,
+          "summary": "The chain cache used to be permanent and now expires after a TTL (chainTtlMs, 20 s by default), but no test moves the clock past the TTL, so the refetch path is never run: a broken TTL check (stale marks forever, or a refetch on every call) would pass.",
+          "class": "untested-changed-path",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "Ff0b5695508",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "packages/data/src/yahoo/source.ts",
+          "line": 18,
+          "summary": "The Yahoo adapter's source tags (source 'yahoo', delayed true, delayMinutes 15, asOf taken from lastTime) are never asserted. live.test.ts runs through yahooSource but checks no `sources` field, so a tag that wrongly says live, or a wrong asOf, would pass.",
+          "class": "untested-changed-path",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "Fb256e4d1f9",
+          "round": 1,
+          "tier": "dropped",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "packages/data/src/cboe.ts",
+          "line": 111,
+          "summary": "The only Cboe quote test runs pre-market, so the regular-session branch (regularPrice = current_price) and the weekend/closed branches of sessionAt are never exercised.",
+          "class": "untested-changed-path",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F3183005334",
+          "round": 1,
+          "tier": "dropped",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "packages/data/src/cboe.ts",
+          "line": 50,
+          "summary": "easternToEpochMs reads the New York offset at the wall-clock time taken as if it were UTC, which is the wrong instant. The tests only use mid-season July and November dates, so a wrong offset in the hours around a DST switch would never be caught.",
+          "class": "untested-edge-case",
+          "verified": false,
+          "outcome": null
+        }
+      ]
+    }
+  },
+  "risk": {
+    "class": "normal",
+    "paths": []
+  },
+  "approval": null,
+  "at": "2026-11-13T11:53:46.441Z"
+}
