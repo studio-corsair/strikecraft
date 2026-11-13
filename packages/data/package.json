@@ -1,0 +1,16 @@
+{
+  "name": "@strikebench/data",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "Market-data ladder and broker adapters behind one interface. Every quote carries its source.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@strikebench/core": "*"
+  },
+  "scripts": {
+    "test": "vitest run --root ../.. packages/data"
+  }
+}

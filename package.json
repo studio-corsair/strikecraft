@@ -1,0 +1,34 @@
+{
+  "name": "strikebench-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "Strikebench: a free, open-source options workstation that runs on your own broker API key",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "check:fast": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/harness/tsbuildinfo && vitest run --changed ${HARNESS_BASE:-HEAD} --passWithNoTests",
+    "check:full": "tsc --noEmit && eslint . --max-warnings=0 && vitest run --coverage --passWithNoTests",
+    "check:ui": "harness gate routes --write && playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.1.0",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.2",
+    "vitest": "^5.1.0"
+  }
+}

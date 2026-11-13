@@ -1,0 +1,13 @@
+{
+  "name": "@strikebench/core",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "Options math: Black-Scholes-Merton, greeks, implied vol, American binomial, multi-leg risk profile, probability analysis, chain analytics. Zero dependencies.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run --root ../.. packages/core"
+  }
+}

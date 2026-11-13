@@ -1,0 +1,15 @@
+{
+  "name": "@strikebench/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "Local Strikebench server: serves the UI and proxies broker and market-data calls from the user's own machine.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@strikebench/core": "*",
+    "@strikebench/data": "*"
+  }
+}

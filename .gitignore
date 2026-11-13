@@ -1,0 +1,10 @@
+node_modules/
+coverage/
+test-results/
+playwright-report/
+.harness/state/
+dist/
+*.tsbuildinfo
+.DS_Store
+.env*
+.strikebench/
