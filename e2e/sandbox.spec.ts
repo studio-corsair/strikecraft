@@ -74,7 +74,8 @@ test('connect the sandbox, place a 2-leg order through the UI, cancel it', async
   await expect(toggle).toHaveAttribute('aria-checked', 'false');
 
   await page.goto(`${base}/trade`);
-  await expect(page.getByTestId('quote-source')).toContainText('Tradier sandbox');
+  // Live services answer in their own time (the broker's quote and clock, plus the public rate and dividend lookups).
+  await expect(page.getByTestId('quote-source')).toContainText('Tradier sandbox', { timeout: 30000 });
   // Far out-of-the-money call vertical for one cent: it cannot fill, so it rests until canceled.
   for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Higher strikes' }).click();
   const asks = page.getByRole('button', { name: /^Buy \d+(\.\d+)? call at the ask/ });

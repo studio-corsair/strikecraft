@@ -9,14 +9,16 @@ const finite = (x: unknown): x is number => typeof x === 'number' && Number.isFi
 export function usd(x: number | null | undefined, digits = 2): string {
   if (!finite(x)) return DASH;
   const s = Math.abs(x).toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
-  return `${x < 0 ? '−' : ''}$${s}`;
+  // A small negative that rounds to zero is "$0", not "−$0".
+  const negative = x < 0 && Number(s.replace(/,/g, '')) !== 0;
+  return (negative ? '−$' : '$') + s;
 }
 
 /** Compact dollars for big P&L numbers: $22.2k, −$47.1k, $1.25M, $278. */
 export function usdCompact(x: number | null | undefined): string {
   if (!finite(x)) return DASH;
   const a = Math.abs(x);
-  const sign = x < 0 ? '−' : '';
+  const sign = x < 0 && a >= 0.5 ? '−' : '';
   if (a >= 1e6) return `${sign}$${(a / 1e6).toFixed(2)}M`;
   if (a >= 1e5) return `${sign}$${(a / 1e3).toFixed(0)}k`;
   if (a >= 1e3) return `${sign}$${(a / 1e3).toFixed(1)}k`;
@@ -37,7 +39,9 @@ export const signedPct = (x: number | null | undefined, digits = 2): string =>
 /** 3668.01 → "3,668"; small numbers keep decimals. */
 export function num(x: number | null | undefined, digits = 0): string {
   if (!finite(x)) return DASH;
-  return x.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits }).replace('-', '−');
+  const s = x.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  // A small negative that rounds to zero is zero, not "−0".
+  return /^-0(\.0+)?$/.test(s) ? s.slice(1) : s.replace('-', '−');
 }
 
 /** "2026-12-18" → "Dec 18 '26". */

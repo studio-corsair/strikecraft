@@ -41,6 +41,10 @@ describe('formatting', () => {
     expect(signedPct(0, 0)).toBe('0%');
     expect(num(3668.01)).toBe('3,668');
     expect(num(-29.47, 1)).toBe('−29.5');
+    expect(num(-0.4)).toBe('0'); // a small negative that rounds to zero is not "−0"
+    expect(num(-0.04, 1)).toBe('0.0');
+    expect(usd(-0.3, 0)).toBe('$0');
+    expect(usdCompact(-0.3)).toBe('$0');
     expect(price(170.891)).toBe('170.89');
     expect(price(undefined)).toBe('–');
   });
