@@ -1,0 +1,74 @@
+{
+  "schema": "trunk-push/1",
+  "verdict": "APPROVE",
+  "head": "6b12675dd86a6b5ae87bebf2480ab37be567e032",
+  "tree": "da6c0bf9b9cbff93ef6a9e4d2a1be7e84fdbd6ca",
+  "base": "e3a1fd28a4d5f60ecaf2cd9dff72c5ee9cb65132",
+  "gate": {
+    "cmd": "npm run -s check:fast",
+    "skipped": false,
+    "exit": 0,
+    "outputSha256": "ba10af235febc1423c2f2e88537d4e396eb9c5d32d9375eaae04c86461934bc1"
+  },
+  "review": {
+    "by": "harness gate review (claude -p, fresh context)",
+    "findings": [
+      "· [advisory medium] apps/server/src/main.ts:111 The 'may still have reached the broker' warning is only added on timeout/abort; a network failure after an order POST/DELETE was sent (connection reset, socket closed mid-response → TypeError 'fetch failed') is rethrown bare, so a placed-or-canceled order can fail with a generic error that invites a blind resend and a duplicate order. (F67504c6aa2)",
+      "· [advisory low] apps/server/test/server.test.ts:249 No test covers the rule that a timed-out GET never gets the order warning. The only GET in the test calls /v1/user/profile, which the /orders path check already rules out, and it is matched with toThrow (a substring match), so extra warning text would pass anyway. Deleting the GET early-return at main.ts:24, or adding the warning to GET /orders listings, would not fail any test. (F18e4a537c7)",
+      "· round 1 (full): 3 new candidate(s), 1 dropped by the verifier"
+    ],
+    "report": {
+      "promptHash": "6c9bc873141b",
+      "round": 1,
+      "mode": "full",
+      "reviewMd": null,
+      "findings": [
+        {
+          "id": "F67504c6aa2",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "medium",
+          "file": "apps/server/src/main.ts",
+          "line": 111,
+          "summary": "The 'may still have reached the broker' warning is only added on timeout/abort; a network failure after an order POST/DELETE was sent (connection reset, socket closed mid-response → TypeError 'fetch failed') is rethrown bare, so a placed-or-canceled order can fail with a generic error that invites a blind resend and a duplicate order.",
+          "class": "ambiguous-write-failure-misreported",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F18e4a537c7",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "apps/server/test/server.test.ts",
+          "line": 249,
+          "summary": "No test covers the rule that a timed-out GET never gets the order warning. The only GET in the test calls /v1/user/profile, which the /orders path check already rules out, and it is matched with toThrow (a substring match), so extra warning text would pass anyway. Deleting the GET early-return at main.ts:24, or adding the warning to GET /orders listings, would not fail any test.",
+          "class": "untested-branch",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "Ff761b3046e",
+          "round": 1,
+          "tier": "dropped",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "apps/web/test/logic.test.ts",
+          "line": 138,
+          "summary": "The new `a >= 0.5` cutoff in usdCompact is only tested with -0.3. No case checks that a value which rounds to $1 (for example -0.6) still shows '−$1', so moving the cutoff (say to `a >= 1`) would wrongly show '$1' and no test would fail.",
+          "class": "untested-boundary",
+          "verified": false,
+          "outcome": null
+        }
+      ]
+    }
+  },
+  "risk": {
+    "class": "normal",
+    "paths": []
+  },
+  "approval": null,
+  "at": "2026-11-13T15:14:37.405Z"
+}
