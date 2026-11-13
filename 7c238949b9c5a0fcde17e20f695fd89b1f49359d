@@ -1,0 +1,47 @@
+{
+  "schema": "trunk-push/1",
+  "verdict": "APPROVE",
+  "head": "7c238949b9c5a0fcde17e20f695fd89b1f49359d",
+  "tree": "500bce0aaa488832c45a5dbcdac0d095a6f53869",
+  "base": "945ff31dd246fcf92da88f11d3d36ec25dbfb40d",
+  "gate": {
+    "cmd": "npm run -s check:fast",
+    "skipped": false,
+    "exit": 0,
+    "outputSha256": "99ee1844426c438a4db719f4892a3dd9c411bae3075ecdd91749f33d04934243"
+  },
+  "review": {
+    "by": "harness gate review (claude -p, fresh context)",
+    "findings": [
+      "· [advisory low] package.json:13 The root engines field was raised to >=22.18, but the root entry in package-lock.json still says >=20. Until someone regenerates the lockfile, the manifest and the lockfile disagree about which Node version the repo needs. (Ffb26a2472e)",
+      "· round 1 (full): 1 new candidate(s), 0 dropped by the verifier"
+    ],
+    "report": {
+      "promptHash": "6c9bc873141b",
+      "round": 1,
+      "mode": "full",
+      "reviewMd": null,
+      "findings": [
+        {
+          "id": "Ffb26a2472e",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "package.json",
+          "line": 13,
+          "summary": "The root engines field was raised to >=22.18, but the root entry in package-lock.json still says >=20. Until someone regenerates the lockfile, the manifest and the lockfile disagree about which Node version the repo needs.",
+          "class": "engines-contract-drift",
+          "verified": true,
+          "outcome": null
+        }
+      ]
+    }
+  },
+  "risk": {
+    "class": "normal",
+    "paths": []
+  },
+  "approval": null,
+  "at": "2026-11-13T15:22:02.956Z"
+}
