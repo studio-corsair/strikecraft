@@ -1,0 +1,186 @@
+{
+  "schema": "trunk-push/1",
+  "verdict": "REQUEST_CHANGES",
+  "head": "c2986435e46d1272f85e7df0d13ba1019b09ceaa",
+  "tree": "e6e790ccd1e684fec6f621d3072e3b2db341fdd6",
+  "base": "19904937c0dea56cb6b09c2e5cb52aabace8d6ac",
+  "gate": {
+    "cmd": "npm run -s check:fast",
+    "skipped": false,
+    "exit": 0,
+    "outputSha256": "d9bf10a370399485460e63b8a522766137f4abebdee4177da858a5cef5a1f668"
+  },
+  "review": {
+    "by": "harness gate review (claude -p, fresh context)",
+    "findings": [
+      "✗ [high] apps/server/src/server.ts:110 One bad request crashes the whole local server. The request handler is async and nothing catches its errors, so a header like `Origin: null` (sent by sandboxed iframes and file:// pages), a malformed percent-encoded path like `GET /%zz`, or a client hanging up mid-upload throws, becomes an unhandled rejection, and Node's default behaviour exits the process. — fix every instance of `uncaught-async-handler-throw` (apps/server/src/server.ts:110, apps/server/src/server.ts:83, apps/server/src/server.ts:119) (Fd4a685800f)",
+      "✗ [security high] apps/server/src/server.ts:705 Two inputs reach the server unvalidated: a malformed percent-encoded path (e.g. `/%E0`) makes `decodeURIComponent` throw, and `Origin: null` makes `new URL(origin)` throw. Both throw inside the async `http.createServer` handler with nothing to catch them, so Node exits on the unhandled rejection, and any web page the user visits can kill the local server with an `<img src=\"http://127.0.0.1:4173/%E0\">` or a request from a sandboxed iframe. — fix every instance of `unhandled-throw-on-untrusted-input` (apps/server/src/server.ts:705, apps/server/src/server.ts:732) (Ff6025ad4b9)",
+      "· [advisory medium] apps/web/src/screens/Trade.tsx:337 The ticket's net mid can be computed from out-of-date prices. useLoad keeps the previous analysis on screen while a new one loads, and keeps it for good if the new one fails, so the price list from the old legs gets matched by position to the new legs. After removing a leg, for example, the remaining leg is priced with the removed leg's mark. That wrong net then sets the default limit price and decides whether buildOrder sends the order as a debit or a credit. (Fe23e5362d5)",
+      "· [advisory medium] apps/web/src/screens/Trade.tsx:696 Partly filled orders can't be cancelled. The Cancel button is enabled only for 'open' and 'pending' orders, but the Tradier and tastytrade adapters report a partly filled working order as 'partially_filled', so the user cannot cancel the unfilled rest. (F115be7b2f9)",
+      "· [advisory medium] apps/server/src/main.ts:79 No broker HTTP call has a timeout. A broker that stops responding makes every /api request using it hang forever. For tastytrade a stalled token refresh is worse: the shared `refreshing` promise never settles, so every later call waits on it until the process restarts. (F00f23033d8)",
+      "· [advisory medium] packages/data/src/service.ts:366 The in-memory `saved` state is changed before `store.save` runs, and `rebuild()` only runs after a successful save. If the save fails (disk full, EACCES), the request returns an error but memory now disagrees with disk. Status then reports allowLiveOrders or the new connection as in effect, and the next successful connect, disconnect or setSettings rebuilds the brokers with a setting the user was told had failed. (F148304575e)",
+      "· [advisory low] apps/server/src/server.ts:98 The static file stream is piped with no error handler. If a read fails (the file is removed or replaced between existsSync and the read during a rebuild), the stream emits an unhandled 'error' that crashes the process. (Fa383c57f5e)",
+      "· [advisory low] apps/web/test/earnings.test.tsx:25 The 'does not mutate its input' test can never fail. Sorting the fixture ascending by movePct puts the 2024-02-01 row first anyway, so rows[0].date would still be '2024-02-01' even if sortQuarters sorted the array in place. (F39e1ad48cf)",
+      "· round 1 (full): 11 new candidate(s), 3 dropped by the verifier"
+    ],
+    "report": {
+      "promptHash": "6c9bc873141b",
+      "round": 1,
+      "mode": "full",
+      "reviewMd": null,
+      "findings": [
+        {
+          "id": "Fd4a685800f",
+          "round": 1,
+          "tier": "blocking",
+          "pass": "bugs",
+          "severity": "high",
+          "file": "apps/server/src/server.ts",
+          "line": 110,
+          "summary": "One bad request crashes the whole local server. The request handler is async and nothing catches its errors, so a header like `Origin: null` (sent by sandboxed iframes and file:// pages), a malformed percent-encoded path like `GET /%zz`, or a client hanging up mid-upload throws, becomes an unhandled rejection, and Node's default behaviour exits the process.",
+          "class": "uncaught-async-handler-throw",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "Fe23e5362d5",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "medium",
+          "file": "apps/web/src/screens/Trade.tsx",
+          "line": 337,
+          "summary": "The ticket's net mid can be computed from out-of-date prices. useLoad keeps the previous analysis on screen while a new one loads, and keeps it for good if the new one fails, so the price list from the old legs gets matched by position to the new legs. After removing a leg, for example, the remaining leg is priced with the removed leg's mark. That wrong net then sets the default limit price and decides whether buildOrder sends the order as a debit or a credit.",
+          "class": "stale-async-state-mismatch",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F115be7b2f9",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "medium",
+          "file": "apps/web/src/screens/Trade.tsx",
+          "line": 696,
+          "summary": "Partly filled orders can't be cancelled. The Cancel button is enabled only for 'open' and 'pending' orders, but the Tradier and tastytrade adapters report a partly filled working order as 'partially_filled', so the user cannot cancel the unfilled rest.",
+          "class": "incomplete-state-condition",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F8163ee6f22",
+          "round": 1,
+          "tier": "dropped",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "packages/data/src/service.ts",
+          "line": 323,
+          "summary": "Order sorting can come out inconsistent. When two orders have the same createdAt, the tie-break `Number(y.id) - Number(x.id)` returns NaN for any non-numeric order id, which gives Array.sort an invalid comparator.",
+          "class": "nan-comparator",
+          "verified": false,
+          "outcome": null
+        },
+        {
+          "id": "F00f23033d8",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "medium",
+          "file": "apps/server/src/main.ts",
+          "line": 79,
+          "summary": "No broker HTTP call has a timeout. A broker that stops responding makes every /api request using it hang forever. For tastytrade a stalled token refresh is worse: the shared `refreshing` promise never settles, so every later call waits on it until the process restarts.",
+          "class": "missing-timeout",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F148304575e",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "medium",
+          "file": "packages/data/src/service.ts",
+          "line": 366,
+          "summary": "The in-memory `saved` state is changed before `store.save` runs, and `rebuild()` only runs after a successful save. If the save fails (disk full, EACCES), the request returns an error but memory now disagrees with disk. Status then reports allowLiveOrders or the new connection as in effect, and the next successful connect, disconnect or setSettings rebuilds the brokers with a setting the user was told had failed.",
+          "class": "state-mutated-before-persist",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F6ff85b02a5",
+          "round": 1,
+          "tier": "dropped",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "apps/server/src/app.ts",
+          "line": 96,
+          "summary": "Every error that is not one of the known types is returned as 422 \"request refused\". That includes network failures reaching the broker (fetch TypeError), config-file write errors and internal bugs, so clients see a validation-style error for an upstream or server fault.",
+          "class": "misreported-error-status",
+          "verified": false,
+          "outcome": null
+        },
+        {
+          "id": "Fa383c57f5e",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "apps/server/src/server.ts",
+          "line": 98,
+          "summary": "The static file stream is piped with no error handler. If a read fails (the file is removed or replaced between existsSync and the read during a rebuild), the stream emits an unhandled 'error' that crashes the process.",
+          "class": "unhandled-stream-error",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "F39e1ad48cf",
+          "round": 1,
+          "tier": "advisory",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "apps/web/test/earnings.test.tsx",
+          "line": 25,
+          "summary": "The 'does not mutate its input' test can never fail. Sorting the fixture ascending by movePct puts the 2024-02-01 row first anyway, so rows[0].date would still be '2024-02-01' even if sortQuarters sorted the array in place.",
+          "class": "vacuous-assertion",
+          "verified": true,
+          "outcome": null
+        },
+        {
+          "id": "Fa12ef6a29d",
+          "round": 1,
+          "tier": "dropped",
+          "pass": "bugs",
+          "severity": "low",
+          "file": "packages/data/test/tastytrade.test.ts",
+          "line": 604,
+          "summary": "The test says the recorded DXLink URL is one 'the adapter accepts', but it re-implements the suffix check inline instead of running the URL through the adapter's stream(). A change to the real guard at tastytrade.ts:581 (for example a protocol or host rule) would not make this test fail.",
+          "class": "test-reimplements-logic",
+          "verified": false,
+          "outcome": null
+        },
+        {
+          "id": "Ff6025ad4b9",
+          "round": 1,
+          "tier": "blocking",
+          "pass": "security",
+          "severity": "high",
+          "file": "apps/server/src/server.ts",
+          "line": 705,
+          "summary": "Two inputs reach the server unvalidated: a malformed percent-encoded path (e.g. `/%E0`) makes `decodeURIComponent` throw, and `Origin: null` makes `new URL(origin)` throw. Both throw inside the async `http.createServer` handler with nothing to catch them, so Node exits on the unhandled rejection, and any web page the user visits can kill the local server with an `<img src=\"http://127.0.0.1:4173/%E0\">` or a request from a sandboxed iframe.",
+          "class": "unhandled-throw-on-untrusted-input",
+          "verified": true,
+          "outcome": null
+        }
+      ]
+    }
+  },
+  "risk": {
+    "class": "sensitive",
+    "paths": [
+      ".github/workflows/ci.yml"
+    ]
+  },
+  "approval": null,
+  "at": "2026-11-13T14:07:33.754Z"
+}
